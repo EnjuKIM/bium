@@ -88,8 +88,9 @@ input,textarea{ font:inherit; color:var(--ink); }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
 
 /* ── 오늘 ───────────────────────── */
-.streak{ display:flex; justify-content:center; margin-top:12px; }
-.streak-pill{ padding:7px 16px; border-radius:999px; font-family:var(--serif); font-weight:700; font-size:14.5px; color:#fff;
+.streak{ display:flex; justify-content:flex-end; flex:0 0 auto; }
+.streak:empty{ display:none; }
+.streak-pill{ padding:6px 12px; border-radius:999px; font-family:var(--serif); font-weight:700; font-size:13.5px; color:#fff; white-space:nowrap;
   background:linear-gradient(135deg,#ffb36b,#ff7d95); box-shadow:0 8px 18px -10px #ff7d95, inset 0 1px 0 rgba(255,255,255,.4); animation:pop .5s cubic-bezier(.3,1.6,.5,1) both; }
 .streak-pill.mile{ background:linear-gradient(135deg,#ffd36b,#ff8fb1,#b892ff); box-shadow:0 0 0 3px rgba(255,255,255,.35), 0 10px 22px -10px #ff8fb1; }
 .streak-pill.soft{ background:var(--glass2); color:var(--ink2); border:1px solid var(--line); box-shadow:none; font-size:13.5px; }
@@ -334,6 +335,8 @@ input,textarea{ font:inherit; color:var(--ink); }
 .toast{ position:fixed; left:50%; bottom:calc(var(--sab) + 24px); transform:translate(-50%, 12px); max-width:calc(100% - 40px); padding:11px 18px; border-radius:999px;
   background:rgba(255,255,255,.94); color:#1b1434; font-size:13.5px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .3s, transform .3s; z-index:60; text-align:center; word-break:keep-all; }
 .toast.show{ opacity:1; transform:translate(-50%, 0); }
+.toast.act{ pointer-events:auto; white-space:nowrap; display:flex; align-items:center; gap:10px; padding:8px 8px 8px 18px; text-align:left; }
+.toast-act{ flex:0 0 auto; padding:7px 14px; border-radius:999px; background:#3d3366; color:#fff; font-size:13px; font-weight:700; }
 
 @media (max-width:340px){
   .app{ padding-left:12px; padding-right:12px; }
@@ -367,6 +370,7 @@ input,textarea{ font:inherit; color:var(--ink); }
       <div class="brand">비움</div>
       <div class="date" id="todayLabel"></div>
     </div>
+    <div class="streak" id="streak"></div>
   </header>
 
   <nav class="nav" id="nav">
@@ -395,7 +399,6 @@ input,textarea{ font:inherit; color:var(--ink); }
   <main>
     <!-- 오늘 -->
     <section class="view" id="v-today">
-      <div class="streak" id="streak"></div>
       <div class="bubble" id="bubble"></div>
       <div class="ring-box" id="ringBox">
         <svg class="ring" viewBox="0 0 300 300" aria-hidden="true">
@@ -447,7 +450,7 @@ input,textarea{ font:inherit; color:var(--ink); }
    기록은 이 기기의 브라우저(localStorage)에만 저장돼요.
    ───────────────────────────────────────────── */
 const KEY = 'bium_v1';
-const BUILD = '2026-11-26.12'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
+const BUILD = '2026-11-26.13'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
 const H = 36e5, MIN = 6e4, DAY = 864e5;
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -737,7 +740,7 @@ function renderToday(){
     $('#editStart').onclick = editStartSheet;
     $('#goalChip').onclick = planSheet;
     btn.textContent = '단식 마치기'; btn.classList.toggle('soft', !ph.ach);
-    sub.hidden = true;
+    sub.hidden = false; sub.textContent = '잘못 눌렀어요 · 취소'; sub.onclick = cancelFastSheet;
     const endAt = S.cur.start + goal * H;
     ab.hidden = ph.ach;
     if (APP) {
@@ -997,16 +1000,17 @@ function streakInfo(){
 }
 const MILESTONES = { 3:'3일 연속! 몸이 리듬을 익히고 있어요', 7:'일주일 연속! 정말 대단해요', 14:'2주 연속! 이제 습관이 됐어요',
   21:'3주 연속! 21일의 기적이에요', 30:'한 달 연속! 스스로를 꼭 안아 주세요', 50:'50일 연속! 놀라운 꾸준함이에요', 100:'100일 연속! 전설이 되었어요' };
+// 제목 옆 작은 칩: 기록이 있을 때만 🔥 N일 (도전 중이면 N일째)
 function streakText(si){
-  if (si.live) return si.count === 1 ? '🔥 오늘 1일째 도전 중' : `🔥 연속 ${si.count}일째 비움 중`;
-  if (si.n > 0) return `🔥 연속 ${si.n}일 달성`;
+  if (si.live) return `🔥 ${si.count}일째`;
+  if (si.n > 0) return `🔥 ${si.n}일`;
   return '';
 }
 function renderStreak(){
   const si = streakInfo(), el = $('#streak'), txt = streakText(si);
-  el.innerHTML = txt
-    ? `<button class="streak-pill${MILESTONES[si.count] ? ' mile' : ''}">${esc(txt)}${MILESTONES[si.count] && !si.live ? ' ✦' : ''}</button>`
-    : `<button class="streak-pill soft">✦ 오늘부터 1일, 시작해 볼까요?</button>`;
+  if (!txt) { el.innerHTML = ''; return; }
+  const mile = MILESTONES[si.live ? si.count : si.n];
+  el.innerHTML = `<button class="streak-pill${mile ? ' mile' : ''}" aria-label="연속 ${si.live ? si.count + '일째 도전 중' : si.n + '일 달성'}">${esc(txt)}${mile && !si.live ? ' ✦' : ''}</button>`;
   el.firstChild.onclick = () => go('log');
 }
 function renderLog(){
@@ -1169,12 +1173,31 @@ function ackSheet(then){
   });
 }
 
+/* 잘못 시작한 단식을 기록 없이 지워요 (지운 뒤에도 잠깐 되돌릴 수 있어요) */
+function cancelFastSheet(){
+  if (!S.cur) return;
+  const el = Date.now() - S.cur.start;
+  openSheet(`
+    <h3 class="sh-t">이번 단식을 취소할까요?</h3>
+    <p class="sh-s">${esc(when(S.cur.start))}에 시작해서 ${esc(dur(el))}째예요. 취소하면 기록에 남지 않고, 연속 기록에도 들어가지 않아요.<br>그만하고 기록은 남기고 싶다면 <b>단식 마치기</b>를 눌러 주세요.</p>
+    <div class="row-btns"><button class="primary soft" id="cfKeep">계속할게요</button><button class="primary" id="cfDel">취소할게요</button></div>`, () => {
+    $('#cfKeep').onclick = closeSheet;
+    $('#cfDel').onclick = () => {
+      const prev = { start: S.cur.start, goal: S.cur.goal };
+      S.cur = null; save(); closeSheet(); renderAll();
+      toast('단식을 취소했어요', { label:'되돌리기', fn: () => { S.cur = prev; resetSeen(); save(); renderAll(); toast('다시 단식 중이에요'); } });
+    };
+  });
+}
+
 function startFast(at){
   if (!S.ack) { ackSheet(() => startFast(at)); return; }
   const start = Math.min(at || Date.now(), Date.now());
   S.cur = { start, goal: plan().f }; resetSeen();
   save(); renderAll();
-  toast(at ? `${when(start)}부터 단식 중이에요` : '비움을 시작했어요. 천천히, 가볍게.');
+  toast(at ? `${when(start)}부터 단식 중이에요` : '비움을 시작했어요', {
+    label:'되돌리기', fn: () => { S.cur = null; save(); renderAll(); toast('시작을 취소했어요'); }
+  });
   if (APP && !S.notify && !S.askedNotify) { S.askedNotify = true; save(); setTimeout(() => enableAppNotify(), 1200); }
   else if (S.notify) ensurePermission();
 }
@@ -1244,13 +1267,21 @@ function endSheet(){
     $('#enOk').onclick = () => {
       const endAt = Date.now();
       const f = { id: 'f' + endAt.toString(36) + Math.random().toString(36).slice(2, 6), start: S.cur.start, end: endAt, goal: S.cur.goal, mood, note: $('#enNote').value.trim().slice(0, 300) };
+      const prevCur = S.cur, prevLastEnd = S.lastEnd;
       S.fasts.push(f); S.fasts.sort((a, b) => a.start - b.start);
       S.lastEnd = endAt; S.cur = null; save(); closeSheet(); renderAll();
+      // 실수로 마쳤다면: 기록을 지우고 단식 중으로 되돌려요
+      const undo = { label:'되돌리기', fn: () => {
+        S.fasts = S.fasts.filter(x => x.id !== f.id);
+        S.cur = { start: prevCur.start, goal: prevCur.goal }; resetSeen();
+        S.lastEnd = prevLastEnd || latestEnd();
+        save(); renderAll(); toast('다시 단식 중으로 되돌렸어요');
+      }};
       if (achieved(f)) {
         const n = streakInfo().n;
-        toast(MILESTONES[n] ? `🎉 ${MILESTONES[n]}` : n > 1 ? `🔥 연속 ${n}일 달성! 오늘도 해냈어요` : '오늘의 비움을 기록했어요 ✦');
+        toast(MILESTONES[n] ? `🎉 ${MILESTONES[n]}` : n > 1 ? `🔥 연속 ${n}일 달성!` : '오늘의 비움을 기록했어요 ✦', undo);
         if (MILESTONES[n]) chime('goal', true);
-      } else toast('기록했어요. 다음엔 조금 더 멀리 가봐요');
+      } else toast('기록했어요. 다음엔 조금 더 멀리!', undo);
     };
   });
 }
@@ -1521,7 +1552,20 @@ function checkMilestones(ph){
 
 /* ── 공통 ───────────────────────────── */
 let toastT;
-function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
+// action: { label, fn } 이 있으면 [되돌리기] 같은 버튼이 붙고 6초간 떠 있어요
+function toast(msg, action){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('act', !!action);
+  if (action) {
+    const b = document.createElement('button');
+    b.className = 'toast-act'; b.textContent = action.label;
+    b.onclick = () => { clearTimeout(toastT); t.classList.remove('show', 'act'); action.fn(); };
+    t.appendChild(b);
+  }
+  t.classList.add('show'); clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show', 'act'), action ? 6000 : 2600);
+}
 let view = 'today';
 function go(v){
   view = v;
