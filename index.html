@@ -128,6 +128,25 @@ input,textarea{ font:inherit; color:var(--ink); }
 .rc-sub b{ color:var(--ink); }
 
 #mainBtn{ margin-top:14px; }
+/* 물 기록 */
+.water{ display:flex; align-items:center; gap:10px; margin-top:8px; padding:8px 8px 8px 14px; border-radius:16px; background:var(--glass2); border:1px solid var(--line); }
+.water .w-l{ flex:1; min-width:0; text-align:left; }
+.water .w-t{ font-size:13.5px; color:var(--ink2); } .water .w-t b{ color:var(--ink); font-weight:700; }
+.drops{ display:flex; flex-wrap:wrap; gap:4px; margin-top:5px; }
+.drops i{ width:11px; height:14px; border-radius:50% 50% 50% 50% / 62% 62% 38% 38%; transform:rotate(180deg); background:var(--track); }
+.drops i.on{ background:linear-gradient(180deg,#6ca8ff,#8fd8ff); }
+.w-add{ flex:0 0 auto; width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#8fd8ff,#6ca8ff); color:#fff; font-size:22px; font-weight:700; line-height:1; box-shadow:0 6px 14px -8px #6ca8ff; }
+.w-add:active{ transform:scale(.94); }
+/* 주간 리포트 */
+.week-chart{ width:100%; height:auto; display:block; margin-top:6px; }
+.week-sum{ display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px; font-size:12.5px; color:var(--ink2); }
+.week-sum b{ color:var(--ink); }
+/* 목표 체중 */
+.goal-bar{ height:8px; border-radius:99px; background:var(--track); margin-top:8px; overflow:hidden; }
+.goal-bar > i{ display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,var(--acc),var(--acc2)); }
+.goal-row{ display:flex; justify-content:space-between; gap:8px; margin-top:12px; font-size:13px; color:var(--ink2); }
+.goal-row b{ color:var(--ink); }
+.mini-btn{ padding:5px 11px; border-radius:999px; background:var(--soft2); border:1px solid var(--line); font-size:12px; color:var(--ink2); }
 .stage-pill{ display:flex; align-items:center; gap:8px; margin:16px auto 0; max-width:100%; padding:10px 14px 10px 12px; border-radius:999px; background:var(--glass2);
   border:1px solid var(--line); font-size:14px; color:var(--ink); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
 .stage-pill .sp-dot{ width:22px; height:22px; flex:0 0 22px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--acc),var(--acc2)); color:#fff; font-size:12px; }
@@ -424,6 +443,7 @@ input,textarea{ font:inherit; color:var(--ink); }
       <button class="alarm-btn" id="alarmBtn" hidden></button>
       <button class="link" id="subBtn"></button>
       <div class="times" id="times"></div>
+      <div class="water" id="water"></div>
       <!-- 몸의 변화: 첫 화면에선 안 보이게 맨 아래로 -->
       <button class="stage-pill" id="stagePill"></button>
     </section>
@@ -450,7 +470,7 @@ input,textarea{ font:inherit; color:var(--ink); }
    기록은 이 기기의 브라우저(localStorage)에만 저장돼요.
    ───────────────────────────────────────────── */
 const KEY = 'bium_v1';
-const BUILD = '2026-11-26.13'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
+const BUILD = '2026-11-26.14'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
 const H = 36e5, MIN = 6e4, DAY = 864e5;
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -521,11 +541,20 @@ const MOODS = [
 const moodOf = id => MOODS.find(m => m[0] === id);
 
 /* ── 저장 ─────────────────────────── */
-function fresh(){ return { v:1, planId:'16:8', customF:24, cur:null, lastEnd:null, fasts:[], weights:[], notify:false, chime:true, ack:false }; }
+function fresh(){ return { v:1, planId:'16:8', customF:24, cur:null, lastEnd:null, fasts:[], weights:[], notify:false, chime:true, ack:false,
+  water:{}, waterGoal:8, goalKg:null, remind:{ on:false, h:20, m:0 }, lastBackup:0, lastBackupAsk:0 }; }
 function normalize(d){
   const s = Object.assign(fresh(), d && typeof d === 'object' ? d : {});
   s.fasts = Array.isArray(s.fasts) ? s.fasts.filter(f => f && f.id && +f.start && +f.end && f.end > f.start) : [];
   s.weights = Array.isArray(s.weights) ? s.weights.filter(w => w && /^\d{4}-\d\d-\d\d$/.test(w.d) && +w.kg > 0) : [];
+  const wt = {}; if (s.water && typeof s.water === 'object') Object.keys(s.water).forEach(k => { const n = Math.round(+s.water[k]); if (/^\d{4}-\d\d-\d\d$/.test(k) && n > 0) wt[k] = Math.min(30, n); });
+  s.water = wt;
+  s.waterGoal = Math.min(20, Math.max(1, Math.round(+s.waterGoal) || 8));
+  s.goalKg = +s.goalKg > 20 && +s.goalKg < 300 ? Math.round(+s.goalKg * 10) / 10 : null;
+  const r = s.remind && typeof s.remind === 'object' ? s.remind : {};
+  s.remind = { on: !!r.on, h: Math.min(23, Math.max(0, Math.round(+r.h) || 0)), m: Math.min(59, Math.max(0, Math.round(+r.m) || 0)) };
+  if (!(d && d.remind)) s.remind.h = 20;
+  s.lastBackup = +s.lastBackup || 0; s.lastBackupAsk = +s.lastBackupAsk || 0;
   if (s.cur && !(+s.cur.start > 0)) s.cur = null;
   if (s.cur && !(+s.cur.goal > 0)) s.cur.goal = 16;
   s.customF = Math.min(72, Math.max(10, +s.customF || 24));
@@ -544,7 +573,7 @@ function pushNative(){
     const pl = plan();
     APP.sync(JSON.stringify({
       v:1, cur: S.cur ? { start:S.cur.start, goal:S.cur.goal } : null, lastEnd:S.lastEnd || 0,
-      eatH: pl.e, planF: pl.f, planName: planName(pl), notify: !!S.notify,
+      eatH: pl.e, planF: pl.f, planName: planName(pl), notify: !!S.notify, remind: S.remind,
       streak: (() => { const si = streakInfo(); return { n: si.n, count: si.count, live: si.live, exp: si.exp }; })(),
       stages: STAGES.map(s => ({ h:s.h, name:s.name, short:s.short, line: s.body.split('. ')[0].replace(/\.?$/, '.') }))
     }));
@@ -608,7 +637,7 @@ function applySky(force){
   if (!force && t.k + day === skyKey) return;
   const dayChanged = skyKey && !skyKey.endsWith(day);
   skyKey = t.k + day;
-  if (dayChanged) { renderStreak(); pushNative(); } // 자정이 지나면 연속 기록도 다시 계산
+  if (dayChanged) { renderStreak(); renderWater(); pushNative(); } // 자정이 지나면 연속 기록도 다시 계산
   const r = document.documentElement, st = r.style;
   st.setProperty('--s1', t.sky[0]); st.setProperty('--s2', t.sky[1]); st.setProperty('--s3', t.sky[2]);
   r.dataset.tone = t.tone;
@@ -780,6 +809,7 @@ function renderToday(){
     btn.textContent = '단식 시작'; btn.classList.remove('soft');
     sub.hidden = false; sub.textContent = '이미 시작했어요 · 시작 시간 고르기'; sub.onclick = () => pickStartSheet();
   }
+  renderWater();
   sig = sigOf(ph);
   tickToday(now, ph);
   setTimeout(fitHome, 0);
@@ -1013,6 +1043,107 @@ function renderStreak(){
   el.innerHTML = `<button class="streak-pill${mile ? ' mile' : ''}" aria-label="연속 ${si.live ? si.count + '일째 도전 중' : si.n + '일 달성'}">${esc(txt)}${mile && !si.live ? ' ✦' : ''}</button>`;
   el.firstChild.onclick = () => go('log');
 }
+/* ── 물 ─────────────────────────────── */
+const todayWater = () => S.water[dkey(Date.now())] || 0;
+function renderWater(){
+  const el = $('#water'); if (!el) return;
+  const n = todayWater(), g = S.waterGoal, cnt = Math.max(g, n);
+  el.innerHTML = `<button class="w-l" id="wOpen" aria-label="물 기록 고치기">
+      <div class="w-t">💧 오늘 물 <b>${n}</b> / ${g}잔${n >= g ? ' · 목표 달성!' : ''}</div>
+      <div class="drops">${Array.from({ length: Math.min(cnt, 16) }, (_, k) => `<i class="${k < n ? 'on' : ''}"></i>`).join('')}</div>
+    </button><button class="w-add" id="wPlus" aria-label="물 한 잔 추가">+</button>`;
+  $('#wPlus').onclick = () => addWater(1);
+  $('#wOpen').onclick = waterSheet;
+}
+function addWater(d){
+  const k = dkey(Date.now()), before = S.water[k] || 0, n = Math.max(0, Math.min(30, before + d));
+  if (n) S.water[k] = n; else delete S.water[k];
+  save(); renderWater();
+  if (d > 0) {
+    try { APP && APP.vibrate('stage'); } catch(e){}
+    if (before < S.waterGoal && n >= S.waterGoal) toast('💧 오늘 물 목표 달성! 잘했어요');
+    else toast(`물 ${n}잔째 💧`, { label:'취소', fn: () => addWater(-1) });
+  }
+}
+function waterSheet(){
+  let g = S.waterGoal;
+  openSheet(`
+    <h3 class="sh-t">물 기록</h3>
+    <p class="sh-s">단식 중엔 물이 가장 좋은 친구예요. 한 잔(약 250ml)마다 + 를 눌러 주세요.</p>
+    <div class="pl wide" style="margin-bottom:10px"><div><div class="pl-n" style="font-size:18px">오늘 마신 물</div></div>
+      <div class="step"><button id="wsM" aria-label="한 잔 빼기">−</button><b id="wsN">${todayWater()}잔</b><button id="wsP" aria-label="한 잔 더하기">+</button></div></div>
+    <div class="pl wide"><div><div class="pl-n" style="font-size:18px">하루 목표</div><div class="pl-s">보통 6~8잔이에요</div></div>
+      <div class="step"><button id="wgM" aria-label="목표 줄이기">−</button><b id="wgN">${g}잔</b><button id="wgP" aria-label="목표 늘리기">+</button></div></div>
+    <button class="primary" id="wsOk" style="margin-top:16px">닫기</button>`, () => {
+    const upd = () => { $('#wsN').textContent = todayWater() + '잔'; $('#wgN').textContent = S.waterGoal + '잔'; };
+    $('#wsM').onclick = () => { addWater(-1); upd(); };
+    $('#wsP').onclick = () => { const k = dkey(Date.now()); S.water[k] = Math.min(30, (S.water[k] || 0) + 1); save(); renderWater(); upd(); };
+    $('#wgM').onclick = () => { S.waterGoal = Math.max(1, S.waterGoal - 1); save(); renderWater(); upd(); };
+    $('#wgP').onclick = () => { S.waterGoal = Math.min(20, S.waterGoal + 1); save(); renderWater(); upd(); };
+    $('#wsOk').onclick = closeSheet;
+  });
+}
+
+/* ── 주간 리포트: 최근 7일 단식 시간 ───── */
+function weekHtml(){
+  const goal = plan().f, days = [];
+  for (let k = 6; k >= 0; k--) {
+    const t = Date.now() - k * DAY, key = dkey(t);
+    const fs = S.fasts.filter(f => dkey(f.end) === key);
+    days.push({ key, d: new Date(t), h: fs.reduce((a, f) => a + (f.end - f.start), 0) / H, ach: fs.some(achieved), w: S.water[key] || 0 });
+  }
+  const W = 300, Hh = 140, top = 16, bot = 22, maxH = Math.max(goal + 2, ...days.map(x => x.h), 1);
+  const y = h => top + (1 - h / maxH) * (Hh - top - bot);
+  const bw = 26, gap = (W - 7 * bw) / 8;
+  let bars = '';
+  days.forEach((x, i) => {
+    const bx = gap + i * (bw + gap), by = y(x.h), bh = Hh - bot - by;
+    const fill = x.ach ? 'url(#wkg)' : 'var(--track)';
+    if (x.h > 0) bars += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw}" height="${Math.max(3, bh).toFixed(1)}" rx="8" fill="${fill}"/>`
+      + `<text x="${(bx + bw / 2).toFixed(1)}" y="${(by - 4).toFixed(1)}" text-anchor="middle" font-size="10" style="fill:var(--ink2)">${x.h >= 10 ? Math.round(x.h) : x.h.toFixed(1)}</text>`;
+    else bars += `<rect x="${bx.toFixed(1)}" y="${(Hh - bot - 3).toFixed(1)}" width="${bw}" height="3" rx="1.5" style="fill:var(--track)"/>`;
+    bars += `<text x="${(bx + bw / 2).toFixed(1)}" y="${Hh - 6}" text-anchor="middle" font-size="11" style="fill:${i === 6 ? 'var(--ink)' : 'var(--ink3)'}">${i === 6 ? '오늘' : '일월화수목금토'[x.d.getDay()]}</text>`;
+  });
+  const gy = y(goal).toFixed(1);
+  const fastDays = days.filter(x => x.h > 0), achN = days.filter(x => x.ach).length;
+  const avg = fastDays.length ? fastDays.reduce((a, x) => a + x.h, 0) / fastDays.length : 0;
+  const wDays = days.filter(x => x.w > 0), wAvg = wDays.length ? wDays.reduce((a, x) => a + x.w, 0) / wDays.length : 0;
+  return `<div class="card" style="margin-top:14px">
+    <div class="sec-h"><h3>최근 7일</h3><span class="muted" style="font-size:12px">점선 = 목표 ${goal}시간</span></div>
+    <svg class="week-chart" viewBox="0 0 ${W} ${Hh}" aria-label="최근 7일 단식 시간 그래프">
+      <defs><linearGradient id="wkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--acc)"/><stop offset="1" style="stop-color:var(--acc2)"/></linearGradient></defs>
+      <line x1="6" x2="${W - 6}" y1="${gy}" y2="${gy}" stroke-dasharray="4 5" stroke-width="1.5" style="stroke:var(--ink3)"/>
+      ${bars}
+    </svg>
+    <div class="week-sum"><span>목표 달성 <b>${achN}일</b></span><span>평균 <b>${avg ? avg.toFixed(1) + '시간' : '–'}</b></span><span>💧 물 평균 <b>${wAvg ? wAvg.toFixed(1) + '잔' : '–'}</b></span></div>
+  </div>`;
+}
+
+/* ── 목표 체중 ─────────────────────── */
+function goalSheet(){
+  openSheet(`
+    <h3 class="sh-t">목표 몸무게</h3>
+    <p class="sh-s">목표를 정해 두면 얼마나 왔는지 막대로 보여 드려요. 무리한 목표보다 한 달에 1~2kg 정도가 건강해요.</p>
+    <div class="w-row"><input id="gIn" type="number" inputmode="decimal" step="0.1" min="20" max="300" placeholder="목표 (kg)" value="${S.goalKg || ''}"><button id="gOk">저장</button></div>
+    ${S.goalKg ? '<button class="link" id="gDel">목표 지우기</button>' : ''}`, () => {
+    $('#gOk').onclick = () => {
+      const kg = parseFloat(String($('#gIn').value).replace(',', '.'));
+      if (!(kg > 20 && kg < 300)) { toast('목표를 kg 단위로 적어 주세요'); return; }
+      S.goalKg = Math.round(kg * 10) / 10; save(); closeSheet(); renderLog(); toast(`목표 ${S.goalKg}kg, 응원할게요!`);
+    };
+    const del = $('#gDel'); if (del) del.onclick = () => { S.goalKg = null; save(); closeSheet(); renderLog(); };
+  });
+}
+function goalHtml(){
+  const ws = S.weights; if (!S.goalKg || !ws.length) return '';
+  const start = ws[0].kg, now = ws[ws.length - 1].kg, goal = S.goalKg;
+  const total = start - goal, done = start - now;
+  const pct = total === 0 ? 100 : Math.max(0, Math.min(100, done / total * 100));
+  const left = Math.round((now - goal) * 10) / 10;
+  const msg = (total >= 0 ? left <= 0 : left >= 0) ? '🎉 목표에 도착했어요!' : `목표까지 <b>${Math.abs(left)}kg</b>`;
+  return `<div class="goal-row"><span>${start}kg → <b>${goal}kg</b></span><span>${msg}</span></div><div class="goal-bar"><i style="width:${pct.toFixed(0)}%"></i></div>`;
+}
+
 function renderLog(){
   const now = new Date();
   if (calY == null) { calY = now.getFullYear(); calM = now.getMonth(); }
@@ -1051,7 +1182,8 @@ function renderLog(){
       <div class="stat"><div class="k">평균 단식</div><div class="v">${avg ? avg.toFixed(1) : '–'}<small>${avg ? '시간' : ''}</small></div></div>
       <div class="stat"><div class="k">가장 긴 단식</div><div class="v">${longest ? (longest / H).toFixed(1) : '–'}<small>${longest ? '시간' : ''}</small></div></div>
     </div>
-    <div class="card" style="margin-top:14px">
+    ${weekHtml()}
+    <div class="card">
       <div class="sec-h"><h3>비움 달력</h3>
         <div class="mnav"><button id="mPrev" aria-label="이전 달">${IC.left}</button><span>${calY}년 ${calM+1}월</span><button id="mNext" aria-label="다음 달">${IC.right}</button></div></div>
       <div class="cal">${cal}</div>
@@ -1059,9 +1191,10 @@ function renderLog(){
       ${dayList}
     </div>
     <div class="card">
-      <div class="sec-h"><h3>몸무게</h3><span class="muted" style="font-size:12px">선택 기록</span></div>
+      <div class="sec-h"><h3>몸무게</h3><button class="mini-btn" id="goalBtn">${S.goalKg ? `목표 ${S.goalKg}kg ✎` : '목표 정하기'}</button></div>
       <div class="w-row"><input id="wIn" type="number" inputmode="decimal" step="0.1" min="20" max="300" placeholder="오늘 몸무게 (kg)"><button id="wAdd">기록</button></div>
       ${weightChart()}
+      ${goalHtml()}
     </div>
     <div class="card">
       <div class="sec-h"><h3>지난 단식</h3><span class="muted" style="font-size:12px">${fs.length}회</span></div>
@@ -1075,6 +1208,7 @@ function renderLog(){
   document.querySelectorAll('#v-log [data-rec]').forEach(b => b.onclick = () => editRecSheet(b.dataset.rec));
   document.querySelectorAll('#v-log [data-wdel]').forEach(b => b.onclick = () => { S.weights = S.weights.filter(w => w.d !== b.dataset.wdel); save(); renderLog(); });
   const more = $('#moreRec'); if (more) more.onclick = () => { showAll = !showAll; renderLog(); };
+  $('#goalBtn').onclick = goalSheet;
   const wIn = $('#wIn');
   wIn.oninput = () => { try { sessionStorage.setItem('bium_w_draft', wIn.value); } catch(e){} };
   try { const dft = sessionStorage.getItem('bium_w_draft'); if (dft) wIn.value = dft; } catch(e){}
@@ -1100,7 +1234,8 @@ function weightChart(){
   const ws = S.weights.slice(-30);
   if (!ws.length) return '<div class="empty" style="padding:16px 8px 4px">몸무게를 남기면 흐름을 그려 드릴게요.</div>';
   const W = 300, Hh = 110, pX = 10, pY = 14;
-  const vals = ws.map(w => w.kg), mn = Math.min(...vals), mx = Math.max(...vals), span = Math.max(.6, mx - mn);
+  const vals = ws.map(w => w.kg).concat(S.goalKg ? [S.goalKg] : []), mn = Math.min(...vals), mx = Math.max(...vals), span = Math.max(.6, mx - mn);
+  const yOf = kg => pY + (1 - (kg - mn + (span - (mx - mn)) / 2) / span) * (Hh - 2*pY);
   const pts = ws.map((w, k) => [pX + (ws.length === 1 ? (W - 2*pX) / 2 : k * (W - 2*pX) / (ws.length - 1)), pY + (1 - (w.kg - mn + (span - (mx - mn)) / 2) / span) * (Hh - 2*pY)]);
   const line = pts.map((p, k) => (k ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
   const area = `${line} L${pts[pts.length-1][0].toFixed(1)} ${Hh} L${pts[0][0].toFixed(1)} ${Hh} Z`;
@@ -1109,6 +1244,7 @@ function weightChart(){
   return `<svg class="w-chart" viewBox="0 0 ${W} ${Hh}" aria-label="몸무게 그래프">
       <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--acc);stop-opacity:.38"/><stop offset="1" style="stop-color:var(--acc);stop-opacity:0"/></linearGradient></defs>
       <path d="${area}" fill="url(#wg)"/>
+      ${S.goalKg ? `<line x1="4" x2="${W - 4}" y1="${yOf(S.goalKg).toFixed(1)}" y2="${yOf(S.goalKg).toFixed(1)}" stroke-dasharray="4 5" stroke-width="1.5" style="stroke:var(--ink3)"/><text x="${W - 6}" y="${(yOf(S.goalKg) - 5).toFixed(1)}" text-anchor="end" font-size="10" style="fill:var(--ink3)">목표 ${S.goalKg}</text>` : ''}
       <path d="${line}" fill="none" style="stroke:var(--acc)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
       <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="#fff"/>
     </svg>
@@ -1329,12 +1465,17 @@ function settingsSheet(){
     <div class="set-row"><div><div class="k">${APP ? '목표·단계 알람' : '단계 알림'}</div><div class="d">${APP
       ? '목표 시각과 새 단계에 들어설 때 폰 알림으로 알려 드려요. 앱을 닫아 두어도 울려요. 소리는 폰 설정 → 알림 → 비움에서 바꿀 수 있어요.'
       : `새 단계에 들어설 때와 목표에 닿았을 때 알려 드려요. 앱을 완전히 닫으면 알림이 늦거나 오지 않을 수 있어요.${perm === 'denied' ? '<br><span class="danger">브라우저에서 알림이 차단되어 있어요.</span>' : perm === 'unsupported' ? '<br>이 브라우저는 알림을 지원하지 않아요.' : ''}`}</div></div><button class="sw${S.notify ? ' on' : ''}" id="stNotify" aria-label="알림 켜기"></button></div>
+    <div class="set-row"><div><div class="k">매일 단식 시작 알림</div><div class="d">정한 시각에 "단식 시작할 시간이에요" 하고 알려 드려요. 이미 단식 중이면 울리지 않아요.${APP ? '' : '<br>브라우저에서는 비움을 열어 두었을 때만 알려 드려요.'}</div></div><button class="sw${S.remind.on ? ' on' : ''}" id="stRemind" aria-label="매일 시작 알림 켜기"></button></div>
+    <label class="set-row" id="stRemindRow"${S.remind.on ? '' : ' hidden'}><div><div class="k">알림 시각</div><div class="d">보통 저녁 식사를 마치는 시각으로 정해요.</div></div><input type="time" id="stRemindT" value="${pad(S.remind.h)}:${pad(S.remind.m)}" style="font-size:16px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:var(--ink)"></label>
     <div class="set-row"><div><div class="k">차임 소리</div><div class="d">앱을 열어 둔 채 목표에 닿거나 새 단계에 들어서면 은은한 종소리가 울려요. 무음 모드에서는 울리지 않을 수 있어요.</div></div><button class="sw${S.chime ? ' on' : ''}" id="stChime" aria-label="차임 소리 켜기"></button></div>
     ${APP ? '' : `<a class="set-row" href="bium.apk" download="bium.apk" style="text-decoration:none;color:inherit"><div><div class="k">안드로이드 앱 받기</div><div class="d">홈 화면 위젯과, 앱을 닫아도 울리는 알람이 있는 갤럭시용 앱이에요. 내려받은 뒤 눌러서 설치해 주세요.</div></div><div class="v">↓</div></a>`}
-    <button class="set-row" id="stCopy"><div><div class="k">백업 복사하기</div><div class="d">기록 전체를 글자로 복사해요. 메모장이나 카톡 나에게 보내기에 붙여 두세요.</div></div><div class="v">›</div></button>
-    <button class="set-row" id="stFile"><div><div class="k">백업 파일로 저장</div><div class="d">bium-backup.json 파일을 ${APP ? '폰의 다운로드 폴더에 저장해요' : '내려받아요'}.</div></div><div class="v">›</div></button>
-    <button class="set-row" id="stRestore"><div><div class="k">백업 붙여넣어 복원</div><div class="d">지금 기록에 합쳐져요. 지워지는 기록은 없어요.</div></div><div class="v">›</div></button>
-    <div class="set-row"><div><div class="k">비움 v1.1${APP ? ' · 안드로이드 앱' : ''}</div><div class="d">${APP
+    <div class="set-row"><div><div class="k">백업</div><div class="d">마지막 백업: <b>${S.lastBackup ? esc(dayWord(S.lastBackup)) : '아직 없어요'}</b>${APP ? ' · 일주일마다 다운로드 폴더에 자동으로 저장해요' : ' · 일주일이 지나면 백업하라고 알려 드려요'}</div></div></div>
+    <button class="set-row" id="stFile"><div><div class="k">지금 백업 파일로 저장</div><div class="d">bium-backup-날짜.json 파일을 ${APP ? '폰의 다운로드 폴더에 저장해요' : '내려받아요'}.</div></div><div class="v">›</div></button>
+    <button class="set-row" id="stCopy"><div><div class="k">백업 글자로 복사</div><div class="d">기록 전체를 글자로 복사해요. 카톡 ‘나에게 보내기’에 붙여 두면 폰을 바꿔도 안전해요.</div></div><div class="v">›</div></button>
+    <button class="set-row" id="stOpen"><div><div class="k">백업 파일에서 복원</div><div class="d">저장해 둔 .json 파일을 골라 기록을 되살려요. 지금 기록과 합쳐지고, 지워지는 건 없어요.</div></div><div class="v">›</div></button>
+    <button class="set-row" id="stRestore"><div><div class="k">백업 글자 붙여넣어 복원</div><div class="d">복사해 둔 백업 글자로 되살려요.</div></div><div class="v">›</div></button>
+    <input type="file" id="stOpenFile" accept=".json,application/json,text/plain" hidden>
+    <div class="set-row"><div><div class="k">비움 v1.3${APP ? ' · 안드로이드 앱' : ''}</div><div class="d">${APP
       ? '기록은 이 폰의 비움 앱 안에만 저장돼요. 앱을 지우면 기록도 사라지니, 가끔 백업해 주세요.'
       : '기록은 이 폰의 브라우저에만 저장돼요. 브라우저 데이터를 지우면 기록도 사라지니, 가끔 백업해 주세요.'}</div></div></div>`, sh => {
     $('#stPlan').onclick = () => { closeSheet(); setTimeout(planSheet, 260); };
@@ -1352,34 +1493,105 @@ function settingsSheet(){
       } else { S.notify = false; btn.classList.remove('on'); toast('알림을 껐어요'); }
       save();
     };
+    $('#stRemind').onclick = async e => {
+      const btn = e.currentTarget;
+      S.remind.on = !S.remind.on; S.remindShown = '';
+      if (S.remind.on && APP) { try { if (!APP.notifyAllowed()) APP.requestNotify(); } catch(err){} }
+      else if (S.remind.on && 'Notification' in window && Notification.permission === 'default') { await ensurePermission(); }
+      save(); btn.classList.toggle('on', S.remind.on); $('#stRemindRow').hidden = !S.remind.on;
+      toast(S.remind.on ? `매일 ${clock(new Date().setHours(S.remind.h, S.remind.m, 0, 0))}에 알려 드릴게요` : '매일 시작 알림을 껐어요');
+    };
+    // 시각은 바꾸는 즉시 저장 (폰에선 onchange 가 안 오는 경우가 있어 oninput 사용)
+    $('#stRemindT').oninput = e => {
+      const m = /^(\d{1,2}):(\d{2})/.exec(e.target.value); if (!m) return;
+      S.remind.h = +m[1]; S.remind.m = +m[2]; S.remindShown = ''; save();
+    };
     $('#stChime').onclick = e => {
       S.chime = !S.chime; e.currentTarget.classList.toggle('on', S.chime); save();
       if (S.chime) { chime('goal', true); toast('차임 소리를 켰어요'); } else toast('차임 소리를 껐어요');
     };
     $('#stCopy').onclick = async () => {
+      S.lastBackup = Date.now(); save();
       const txt = backupText();
       if (APP) { let ok = false; try { ok = APP.copy(txt); } catch(e){} if (ok) toast('백업을 복사했어요'); else showText(txt); return; }
       try { await navigator.clipboard.writeText(txt); toast('백업을 복사했어요'); }
       catch(e){ showText(txt); }
     };
-    $('#stFile').onclick = () => {
-      if (APP) {
-        let ok = false; const name = `bium-backup-${dkey(Date.now())}.json`;
-        try { ok = APP.saveFile(name, 'application/json', backupText()); } catch(e){}
-        if (ok) toast(`다운로드 폴더에 ${name}로 저장했어요`); else showText(backupText());
-        return;
-      }
-      try {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([backupText()], { type:'application/json' }));
-        a.download = `bium-backup-${dkey(Date.now())}.json`; document.body.appendChild(a); a.click();
-        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-      } catch(e){ showText(backupText()); }
-    };
+    $('#stFile').onclick = () => { closeSheet(); fileBackup(false); };
     $('#stRestore').onclick = restoreSheet;
+    $('#stOpen').onclick = () => $('#stOpenFile').click();
+    $('#stOpenFile').onchange = e => {
+      const f = e.target.files && e.target.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => { try { const n = mergeBackup(String(rd.result)); closeSheet(); toast(`단식 기록 ${n}개를 불러왔어요`); } catch(err){ toast('비움 백업 파일이 아니에요'); } };
+      rd.readAsText(f);
+    };
   });
 }
 function backupText(){ return JSON.stringify({ app:'bium', v:1, at: new Date().toISOString(), data: S }); }
+
+/* ── 매일 시작 알림 (브라우저용: 열어 둔 동안만. 앱은 안드로이드가 직접 울려요) ── */
+function checkRemind(now){
+  if (APP || !S.remind.on || S.cur) return;
+  const d = new Date(now), key = dkey(now);
+  if (S.remindShown === key) return;
+  const at = new Date(now); at.setHours(S.remind.h, S.remind.m, 0, 0);
+  if (now < at.getTime() || now - at.getTime() > 30 * MIN) return; // 정한 시각부터 30분 안에만
+  S.remindShown = key; save();
+  chime('stage', true);
+  toast('🌙 단식 시작할 시간이에요', { label:'시작하기', fn: () => startFast() });
+  if (S.notify && 'Notification' in window && Notification.permission === 'granted') {
+    try { new Notification('단식 시작할 시간이에요 🌙', { body:'오늘도 가볍게 비워 볼까요?', icon:'icon-192.png', tag:'bium-remind' }); } catch(e){}
+  }
+}
+
+/* ── 백업 ─────────────────────────────
+   앱: 일주일마다 다운로드 폴더에 조용히 저장 / 브라우저: 일주일 지나면 하루 한 번 알려 줘요 */
+function fileBackup(silent){
+  const now = Date.now(), name = `bium-backup-${dkey(now)}.json`;
+  S.lastBackup = now; save();
+  if (APP) {
+    let ok = false; try { ok = APP.saveFile(name, 'application/json', backupText()); } catch(e){}
+    if (ok) toast(silent ? '이번 주 기록을 다운로드 폴더에 자동 백업했어요 ✓' : `다운로드 폴더에 ${name}로 저장했어요`);
+    else { S.lastBackup = 0; save(); if (!silent) showText(backupText()); }
+    return ok;
+  }
+  try {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([backupText()], { type:'application/json' }));
+    a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast('백업 파일을 내려받았어요');
+    return true;
+  } catch(e){ showText(backupText()); return false; }
+}
+const hasData = () => S.fasts.length > 0 || S.weights.length > 0 || Object.keys(S.water).length > 0;
+function autoBackup(){
+  const now = Date.now();
+  if (!hasData() || now - S.lastBackup < 7 * DAY) return;
+  if (APP) { setTimeout(() => fileBackup(true), 1500); return; }
+  if (now - S.lastBackupAsk < DAY) return;
+  S.lastBackupAsk = now; save();
+  setTimeout(() => toast('백업한 지 일주일이 지났어요', { label:'백업하기', fn: () => fileBackup(false) }), 2500);
+}
+/* 백업 글자(JSON)를 지금 기록에 합쳐요 — 지워지는 기록은 없어요. 불러온 단식 기록 수를 돌려줘요 */
+function mergeBackup(text){
+  const d = JSON.parse(text);
+  if (!d || typeof d !== 'object' || (!d.data && !d.fasts)) throw new Error('not bium');
+  const src = normalize(d.data ? d.data : d);
+  const map = new Map(S.fasts.map(f => [f.id, f]));
+  let added = 0; src.fasts.forEach(f => { if (!map.has(f.id)) { map.set(f.id, f); added++; } });
+  S.fasts = [...map.values()].sort((a, b) => a.start - b.start);
+  const wm = new Map(S.weights.map(w => [w.d, w])); src.weights.forEach(w => { if (!wm.has(w.d)) wm.set(w.d, w); });
+  S.weights = [...wm.values()].sort((a, b) => a.d < b.d ? -1 : 1);
+  Object.keys(src.water).forEach(k => { S.water[k] = Math.max(S.water[k] || 0, src.water[k]); });
+  if (!S.goalKg && src.goalKg) S.goalKg = src.goalKg;
+  if (!S.cur && src.cur && Date.now() - src.cur.start < 96 * H) S.cur = src.cur;
+  if (src.lastEnd && (!S.lastEnd || src.lastEnd > S.lastEnd)) S.lastEnd = src.lastEnd;
+  S.ack = S.ack || src.ack;
+  save(); renderAll();
+  return added;
+}
 
 /* 앱: 알림 권한을 받고 알람 켜기 */
 let notifyCb = null;
@@ -1406,17 +1618,8 @@ function restoreSheet(){
     <label class="field"><textarea id="rsT" style="min-height:160px;font-size:12px" placeholder='{"app":"bium", ...}'></textarea></label>
     <button class="primary" id="rsOk">복원하기</button>`, () => {
     $('#rsOk').onclick = () => {
-      let d; try { d = JSON.parse($('#rsT').value); } catch(e){ toast('백업 글자가 올바르지 않아요'); return; }
-      const src = normalize(d && d.data ? d.data : d);
-      const map = new Map(S.fasts.map(f => [f.id, f]));
-      let added = 0; src.fasts.forEach(f => { if (!map.has(f.id)) { map.set(f.id, f); added++; } });
-      S.fasts = [...map.values()].sort((a, b) => a.start - b.start);
-      const wm = new Map(S.weights.map(w => [w.d, w])); src.weights.forEach(w => { if (!wm.has(w.d)) wm.set(w.d, w); });
-      S.weights = [...wm.values()].sort((a, b) => a.d < b.d ? -1 : 1);
-      if (!S.cur && src.cur && Date.now() - src.cur.start < 96 * H) S.cur = src.cur;
-      if (src.lastEnd && (!S.lastEnd || src.lastEnd > S.lastEnd)) S.lastEnd = src.lastEnd;
-      S.ack = S.ack || src.ack;
-      save(); closeSheet(); renderAll(); toast(`단식 기록 ${added}개를 불러왔어요`);
+      try { const n = mergeBackup($('#rsT').value); closeSheet(); toast(`단식 기록 ${n}개를 불러왔어요`); }
+      catch(e){ toast('백업 글자가 올바르지 않아요'); }
     };
   });
 }
@@ -1592,11 +1795,12 @@ $('#mainBtn').onclick = () => { if (S.cur) endSheet(); else startFast(); };
 function tick(){
   const now = Date.now(), ph = phase(now);
   checkMilestones(ph);
+  checkRemind(now);
   applySky();
   if (sigOf(ph) !== sig) { renderToday(); if (view === 'stages') renderStages(); return; }
   if (view === 'today') tickToday(now, ph);
 }
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { S = load(); renderAll(); checkUpdate(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { S = load(); renderAll(); checkUpdate(); autoBackup(); } });
 
 /* 새 판 확인: 앱을 다시 볼 때 서버에 새 판이 있으면 화면을 새로 불러와요
    (앱이 메모리에 남아 있으면 예전 화면이 계속 보이는 문제 방지) */
@@ -1620,6 +1824,7 @@ window.addEventListener('storage', e => { if (e.key === KEY) { S = load(); rende
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 makeStars();
 renderAll();
+autoBackup();
 setInterval(tick, 1000);
 
 // 홈 화면 바로가기·위젯 버튼: ?a=start / ?a=end
@@ -1634,7 +1839,7 @@ window.biumBack = () => {
   if (view !== 'today') { go('today'); return true; }
   return false;
 };
-window.biumRefresh = () => { S = load(); renderAll(); pushNative(); checkUpdate(); };
+window.biumRefresh = () => { S = load(); renderAll(); pushNative(); checkUpdate(); autoBackup(); };
 (function(){
   const a = new URLSearchParams(location.search).get('a');
   if (a) history.replaceState(null, '', location.pathname);
