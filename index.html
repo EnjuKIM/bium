@@ -163,6 +163,41 @@ input,textarea{ font:inherit; color:var(--ink); }
 .more svg{ width:14px; height:14px; }
 .poem{ text-align:center; font-family:var(--serif); font-size:15px; color:var(--ink2); margin:26px 8px 4px; line-height:1.7; word-break:keep-all; }
 
+/* ── 음식 ───────────────────────── */
+.seg{ display:flex; gap:4px; padding:4px; border-radius:999px; background:var(--glass2); border:1px solid var(--line); margin:0 0 12px; overflow-x:auto; scrollbar-width:none; }
+.seg::-webkit-scrollbar{ display:none; }
+.seg button{ flex:1 0 auto; padding:8px 12px; border-radius:999px; font-size:13px; color:var(--ink2); white-space:nowrap; }
+.seg button.on{ background:linear-gradient(135deg,var(--acc),var(--acc2)); color:var(--btnink); font-family:var(--serif); font-size:14px; }
+.f-search{ width:100%; height:44px; padding:0 16px; border-radius:999px; background:var(--soft); border:1px solid var(--line); font-size:16px; outline:none; margin-bottom:12px; }
+.f-search:focus{ border-color:var(--acc); }
+.f-search::placeholder{ color:var(--ink3); }
+.food{ display:flex; gap:12px; align-items:flex-start; padding:13px 2px; border-bottom:1px solid var(--line); }
+.food:last-child{ border-bottom:0; }
+.food-ic{ width:42px; height:42px; flex:0 0 42px; border-radius:14px; display:grid; place-items:center; font-size:22px; background:var(--soft); }
+.food-m{ flex:1; min-width:0; }
+.food-n{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:15px; }
+.food-n b{ font-family:var(--serif); font-weight:400; font-size:16px; }
+.food-d{ font-size:13px; color:var(--ink2); line-height:1.6; margin-top:3px; word-break:keep-all; }
+.badge{ font-size:11px; padding:2px 8px; border-radius:999px; white-space:nowrap; font-family:var(--sans); }
+.badge.ok{ background:#c9f2df; color:#1f6b4c; }
+.badge.gray{ background:#ffeab8; color:#80590c; }
+.badge.no{ background:#ffd6dc; color:#9b2c40; }
+.f-head{ display:flex; align-items:center; gap:8px; margin:4px 0 2px; }
+.f-head h3{ font-family:var(--serif); font-weight:400; font-size:17px; margin:0; }
+.f-rule{ font-size:13px; color:var(--ink2); line-height:1.65; word-break:keep-all; margin:0; }
+.sos{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; margin-top:12px; }
+.sos div{ text-align:center; padding:10px 4px; border-radius:16px; background:var(--soft); font-size:12px; color:var(--ink2); line-height:1.4; }
+.sos div span{ display:block; font-size:22px; margin-bottom:2px; }
+.meal{ display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line); }
+.meal:last-child{ border-bottom:0; }
+.meal-t{ flex:0 0 58px; font-family:var(--serif); font-size:14px; color:var(--acc); padding-top:2px; }
+:root[data-tone="light"] .meal-t{ filter:brightness(.8) saturate(1.3); }
+.meal-m{ flex:1; min-width:0; }
+.meal-n{ font-size:15px; }
+.meal-d{ font-size:12.5px; color:var(--ink2); line-height:1.6; margin-top:2px; word-break:keep-all; }
+.plate{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.plate span{ font-size:12px; padding:3px 9px; border-radius:999px; background:var(--soft); color:var(--ink2); }
+
 /* ── 몸의 변화 ───────────────────── */
 .page-h{ font-family:var(--serif); font-weight:400; font-size:24px; margin:14px 0 4px; }
 .page-sub{ font-size:13.5px; color:var(--ink2); line-height:1.65; margin:0 0 18px; word-break:keep-all; }
@@ -362,6 +397,9 @@ input,textarea{ font:inherit; color:var(--ink); }
       <button class="link" id="subBtn"></button>
     </section>
 
+    <!-- 음식 -->
+    <section class="view" id="v-food" hidden></section>
+
     <!-- 몸의 변화 -->
     <section class="view" id="v-stages" hidden></section>
 
@@ -374,6 +412,10 @@ input,textarea{ font:inherit; color:var(--ink); }
   <button data-view="today" class="on">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
     <span>오늘</span>
+  </button>
+  <button data-view="food">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0z"/><path d="M8 20h8"/><path d="M9 8c0-1.5 1-1.5 1-3M13 8c0-1.5 1-1.5 1-3"/></svg>
+    <span>음식</span>
   </button>
   <button data-view="stages">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
@@ -761,6 +803,104 @@ function tickToday(now, ph){
   const [ox, oy] = polar(frac, R);
   const orb = $('#orb'); orb.setAttribute('cx', ox.toFixed(2)); orb.setAttribute('cy', oy.toFixed(2));
   orb.style.opacity = ph.p === 'idle' ? 0 : 1;
+}
+
+/* ── 음식 화면 ─────────────────────── */
+// g: ok(괜찮아요) / gray(애매해요) / no(단식이 깨져요)
+const FOODS = [
+  { e:'💧', n:'물·생수',            g:'ok',   d:'가장 좋은 단식 친구예요. 하루 1.5~2L, 조금씩 자주 마셔 주세요.' },
+  { e:'🫧', n:'탄산수 (무가당)',      g:'ok',   d:'열량이 없어요. 맛·향 없는 것으로 고르세요. 공복감 달래기에 좋아요.' },
+  { e:'☕', n:'블랙커피·아메리카노',  g:'ok',   d:'설탕·시럽·우유 없이 마시면 괜찮아요. 하루 2~3잔 이내, 늦은 오후엔 잠을 방해할 수 있어요.' },
+  { e:'🍵', n:'녹차·홍차',            g:'ok',   d:'무가당이면 괜찮아요. 빈속에 진하게 마시면 속이 쓰릴 수 있어요.' },
+  { e:'🌾', n:'보리차·옥수수차·허브차', g:'ok',   d:'티백으로 우린 무가당 차는 열량이 거의 없어요. 따뜻하게 마시면 허기가 덜해요.' },
+  { e:'🧂', n:'소금 한 꼬집·무설탕 전해질', g:'ok', d:'긴 단식에서 어지럽거나 기운이 없을 때 도움이 돼요. 당이 든 전해질 가루는 안 돼요.' },
+  { e:'💊', n:'처방약',               g:'ok',   d:'의사 지시대로 드세요. ‘식후 복용’ 약이나 당뇨약이 있다면 단식 전에 꼭 상의해 주세요.' },
+  { e:'🥤', n:'제로콜라·제로사이다',  g:'gray', d:'열량은 거의 0이에요. 다만 단맛 감미료가 식욕을 자극하거나 인슐린에 영향을 줄 수 있다는 의견이 있어요. 하루 1캔 정도로, 물 대신 마시진 마세요.' },
+  { e:'💪', n:'아미노바이탈·BCAA',    g:'gray', d:'열량은 적지만 아미노산(단백질 성분)이라 몸이 ‘먹었다’고 받아들일 수 있어요. 공복 운동 때 근손실이 걱정될 때만, 자가포식이 목적이면 피하세요. 열량은 제품 성분표를 확인해 주세요.' },
+  { e:'🍬', n:'무설탕 껌·캔디',       g:'gray', d:'열량은 아주 적지만 감미료와 씹는 동작이 허기를 깨울 수 있어요. 입이 심심할 땐 양치가 더 좋아요.' },
+  { e:'🍋', n:'레몬물·사과식초 물',   g:'gray', d:'물에 한두 스푼 정도는 열량이 미미해요. 많이 넣거나 꿀을 타면 단식이 깨져요.' },
+  { e:'🧈', n:'방탄커피 (버터·MCT)',  g:'gray', d:'케토시스는 유지되지만 열량이 높아서 엄밀히는 단식이 깨져요. 장시간 단식을 버티기 위한 용도로만.' },
+  { e:'🍲', n:'사골·채소 육수',       g:'gray', d:'열량이 조금 있어요. 24시간 이상 긴 단식에서 전해질 보충용으로 소량만.' },
+  { e:'⚡', n:'제로 이온음료',        g:'gray', d:'당은 없지만 감미료가 들어 있어요. 운동하며 땀을 많이 흘렸을 때만.' },
+  { e:'🌿', n:'유산균·비타민 정제',   g:'gray', d:'열량 없는 정제·캡슐은 대체로 괜찮아요. 오메가3·비타민D 같은 기름 성분은 식사 때 먹는 게 흡수에 좋아요.' },
+  { e:'🥛', n:'우유·두유·라떼',       g:'no',   d:'우유 한 잔에도 열량과 유당이 있어 단식이 깨져요. 커피엔 우유·크림·시럽 모두 X.' },
+  { e:'🧃', n:'과일주스·스무디·착즙', g:'no',   d:'당이 많아 혈당이 금방 올라요. ‘건강 주스’도 단식 중엔 안 돼요.' },
+  { e:'🍹', n:'이온음료·에너지드링크', g:'no',  d:'일반 이온음료·에너지드링크에는 당이 들어 있어요.' },
+  { e:'🫖', n:'꿀물·유자차·생강차(청)', g:'no', d:'청·꿀·설탕이 들어간 차는 단식이 깨져요. 티백 차로 바꿔 주세요.' },
+  { e:'🍶', n:'콤부차',               g:'no',   d:'발효 음료지만 당이 남아 있는 경우가 많아요.' },
+  { e:'🥤', n:'프로틴 쉐이크·단백질바', g:'no', d:'단백질과 열량이 충분해서 식사로 봐야 해요. 먹는 시간에 드세요.' },
+  { e:'🍫', n:'젤리 비타민·일반 사탕·껌', g:'no', d:'설탕이 들어 있어 단식이 깨져요.' },
+  { e:'🥜', n:'견과류·과일 한 입',    g:'no',   d:'‘조금만’이어도 열량이 있어요. 먹는 시간에 즐겨 주세요.' },
+  { e:'🍺', n:'술 (맥주·와인·소주)',  g:'no',   d:'열량이 있고, 빈속 음주는 저혈당·숙취 위험이 커요.' }
+];
+const FG = { ok:['괜찮아요','ok'], gray:['애매해요','gray'], no:['단식이 깨져요','no'] };
+
+const MEALS = {
+  first: { t:'단식 마친 첫 끼', intro:'오래 비운 속엔 부드럽게. 따뜻한 물이나 국물 한 모금 → 채소 → 단백질 → 탄수화물 순서로 천천히 드세요.', list:[
+    { t:'추천 1', n:'두부 계란 샐러드', d:'삶은 달걀 2개, 두부 반 모, 잎채소에 올리브오일 한 스푼.', p:['단백질','채소','좋은 지방'] },
+    { t:'추천 2', n:'요거트 볼', d:'무가당 그릭요거트에 블루베리 한 줌, 견과류 조금.', p:['단백질','과일 조금'] },
+    { t:'추천 3', n:'한식 한 상', d:'된장국, 생선구이, 나물 두 가지, 현미밥 반 공기.', p:['국물 먼저','현미밥 반'] }
+  ]},
+  day: { t:'16:8 하루 식단 예시', intro:'먹는 시간 12:00~20:00 기준이에요. 두 끼 + 간식 한 번, 단백질을 끼니마다 챙기면 다음 날 공복이 훨씬 편해요.', list:[
+    { t:'12:00', n:'첫 끼', d:'현미밥 2/3공기, 닭가슴살 또는 연어구이, 나물 2가지, 김치 조금.', p:['단백질 손바닥 1개','채소 듬뿍'] },
+    { t:'15:30', n:'간식', d:'그릭요거트 + 견과류, 또는 삶은 달걀 2개 + 방울토마토.', p:['가볍게'] },
+    { t:'19:00', n:'마지막 끼', d:'두부스테이크나 소고기 샐러드, 고구마 반 개, 채소 듬뿍, 미역국.', p:['단식 1시간 전 마무리','단백질 넉넉히'] }
+  ]},
+  avoid: { t:'첫 끼로 피하면 좋은 것', intro:'빈속에 바로 들어가면 혈당이 확 올랐다 떨어져서, 금방 다시 배고프고 폭식으로 이어지기 쉬워요.', list:[
+    { t:'🍞', n:'빵·떡·면·라면', d:'정제 탄수화물만으로 시작하면 혈당이 급하게 올라요. 먹고 싶다면 채소·단백질 다음에 조금.', p:[] },
+    { t:'🍰', n:'케이크·과자·달달한 음료', d:'보상 심리로 찾기 쉬운데, 첫 끼만큼은 피해 주세요.', p:[] },
+    { t:'🍗', n:'튀김·기름진 배달 음식', d:'오래 쉰 위장에 부담이 커서 속이 더부룩할 수 있어요.', p:[] },
+    { t:'🍺', n:'술', d:'빈속 음주는 흡수가 빠르고 저혈당 위험이 있어요.', p:[] }
+  ]}
+};
+let foodFilter = 'all', foodQuery = '', mealTab = 'first';
+
+function foodListHtml(){
+  const q = foodQuery.trim().replace(/\s/g, '');
+  const items = FOODS.filter(f => (foodFilter === 'all' || f.g === foodFilter) && (!q || (f.n + f.d).replace(/\s/g, '').includes(q)));
+  const groups = foodFilter === 'all' ? ['ok', 'gray', 'no'] : [foodFilter];
+  let list = '';
+  groups.forEach(g => {
+    const its = items.filter(f => f.g === g);
+    if (!its.length) return;
+    list += `<div class="card"><div class="f-head"><span class="badge ${g}">${FG[g][0]}</span><h3>${g === 'ok' ? '마셔도 돼요' : g === 'gray' ? '상황에 따라 달라요' : '먹는 시간에 드세요'}</h3></div>
+      ${its.map(f => `<div class="food"><div class="food-ic">${f.e}</div><div class="food-m"><div class="food-n"><b>${esc(f.n)}</b></div><div class="food-d">${esc(f.d)}</div></div></div>`).join('')}</div>`;
+  });
+  if (!list) list = `<div class="card"><div class="empty">‘${esc(foodQuery)}’에 맞는 항목이 없어요.<br>열량이 있다면 대부분 단식이 깨진다고 보면 돼요.</div></div>`;
+  return list;
+}
+function renderFood(){
+  const list = foodListHtml();
+  const ml = MEALS[mealTab];
+  $('#v-food').innerHTML = `
+    <h2 class="page-h">음식 가이드</h2>
+    <p class="page-sub">단식 중엔 <b>열량이 없고</b>, <b>단맛으로 몸을 속이지 않는 것</b>이 기준이에요. 헷갈릴 땐 물이 정답!</p>
+    <div class="seg" id="fSeg">${[['all','전체'], ['ok','괜찮아요'], ['gray','애매해요'], ['no','안 돼요']].map(([k, l]) => `<button data-f="${k}" class="${foodFilter === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <input class="f-search" id="fSearch" type="search" placeholder="찾아보기 (예: 제로콜라, 커피, 아미노)" value="${esc(foodQuery)}">
+    <div id="fList">${list}</div>
+    <div class="card">
+      <div class="f-head"><h3>배고플 때 이렇게 넘겨요</h3></div>
+      <div class="sos"><div><span>💧</span>물 한 컵<br>천천히</div><div><span>🫧</span>탄산수로<br>속 채우기</div><div><span>🌾</span>따뜻한<br>보리차</div><div><span>🪥</span>양치하기</div><div><span>🚶</span>10분<br>산책</div><div><span>🧂</span>소금<br>한 꼬집</div></div>
+    </div>
+    <h2 class="page-h" style="margin-top:26px">추천 식단</h2>
+    <p class="page-sub">무엇을 먹느냐가 다음 단식을 편하게 만들어요.</p>
+    <div class="seg" id="mSeg">${[['first','첫 끼'], ['day','하루 식단'], ['avoid','피할 첫 끼']].map(([k, l]) => `<button data-m="${k}" class="${mealTab === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div class="card">
+      <div class="f-head"><h3>${esc(ml.t)}</h3></div>
+      <p class="f-rule">${esc(ml.intro)}</p>
+      <div style="margin-top:6px">${ml.list.map(m => `<div class="meal"><div class="meal-t">${esc(m.t)}</div><div class="meal-m"><div class="meal-n">${esc(m.n)}</div><div class="meal-d">${esc(m.d)}</div>${m.p.length ? `<div class="plate">${m.p.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}</div></div>`).join('')}</div>
+    </div>
+    <p class="src" style="text-align:center;margin:16px 8px 0">의견이 갈리는 항목은 ‘애매해요’로 두었어요. 일반적인 정보이며 질환이 있다면 의사와 상의해 주세요.<br>참고: <a href="https://www.healthline.com/nutrition/what-breaks-a-fast" target="_blank" rel="noopener">Healthline</a> · <a href="https://www.zoe.com/learn/what-to-eat-or-drink-while-intermittent-fasting" target="_blank" rel="noopener">ZOE</a> · <a href="https://doctornow.co.kr/content/qna/f949ea6f96194df0a5c74a7d7c5c9393" target="_blank" rel="noopener">닥터나우</a></p>`;
+  document.querySelectorAll('#fSeg [data-f]').forEach(b => b.onclick = () => {
+    foodFilter = b.dataset.f;
+    document.querySelectorAll('#fSeg [data-f]').forEach(x => x.classList.toggle('on', x === b));
+    $('#fList').innerHTML = foodListHtml();
+  });
+  document.querySelectorAll('#mSeg [data-m]').forEach(b => b.onclick = () => {
+    mealTab = b.dataset.m; const y = window.scrollY; renderFood(); window.scrollTo(0, y);
+  });
+  // 검색칸은 그대로 두고 목록만 바꿔요 (한글 입력이 끊기지 않게)
+  $('#fSearch').oninput = e => { foodQuery = e.target.value; $('#fList').innerHTML = foodListHtml(); };
 }
 
 /* ── 몸의 변화 화면 ────────────────── */
@@ -1323,8 +1463,9 @@ function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add
 let view = 'today';
 function go(v){
   view = v;
-  ['today','stages','log'].forEach(k => { $('#v-' + k).hidden = k !== v; });
+  ['today','food','stages','log'].forEach(k => { $('#v-' + k).hidden = k !== v; });
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  if (v === 'food') renderFood();
   if (v === 'stages') renderStages();
   if (v === 'log') renderLog();
   if (v === 'today') renderToday();
