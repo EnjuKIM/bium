@@ -14,8 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <style>
 @property --s1 { syntax:'<color>'; inherits:true; initial-value:#1d1940; }
 @property --s2 { syntax:'<color>'; inherits:true; initial-value:#3e3470; }
@@ -24,15 +23,28 @@
 @property --acc2 { syntax:'<color>'; inherits:true; initial-value:#ffc2dc; }
 
 :root{
-  --ink:#f7f2ff; --ink2:rgba(247,242,255,.74); --ink3:rgba(247,242,255,.5); --ink4:rgba(247,242,255,.22);
-  --glass:rgba(16,12,38,.36); --glass2:rgba(255,255,255,.07); --line:rgba(255,255,255,.11);
-  --serif:'Gowun Batang', 'Nanum Myeongjo', serif;
-  --sans:'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  /* 밤·저녁·새벽 (어두운 하늘, 밝은 글씨) */
+  --ink:#f8f4ff; --ink2:rgba(248,244,255,.78); --ink3:rgba(248,244,255,.55); --ink4:rgba(248,244,255,.25);
+  --glass:rgba(20,16,48,.34); --glass2:rgba(255,255,255,.09); --line:rgba(255,255,255,.14);
+  --soft:rgba(255,255,255,.08); --soft2:rgba(255,255,255,.13); --track:rgba(255,255,255,.12);
+  --navbg:rgba(22,18,52,.55); --sheetbg:#1a1540; --nodebg:#2a2350; --dim:rgba(20,16,48,.2);
+  --hill1:rgba(10,7,30,.28); --hill2:rgba(8,6,26,.5); --danger:#ffb3b3; --btnink:#2a2050;
+  --serif:'Jua', 'Gowun Dodum', sans-serif;
+  --sans:'Gowun Dodum', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --navh:64px;
   --sat:env(safe-area-inset-top, 0px); --sab:env(safe-area-inset-bottom, 0px); /* 안드로이드 앱에서는 앱이 직접 채워 줘요 */
   color-scheme:dark;
 }
-html{ transition:--s1 2.4s ease, --s2 2.4s ease, --s3 2.4s ease, --acc 2.4s ease, --acc2 2.4s ease; background:#140f30; }
+/* 아침·낮 (밝은 하늘, 진한 글씨) */
+:root[data-tone="light"]{
+  --ink:#3d3366; --ink2:rgba(61,51,102,.8); --ink3:rgba(61,51,102,.58); --ink4:rgba(61,51,102,.25);
+  --glass:rgba(255,255,255,.52); --glass2:rgba(255,255,255,.55); --line:rgba(255,255,255,.8);
+  --soft:rgba(255,255,255,.55); --soft2:rgba(255,255,255,.75); --track:rgba(255,255,255,.7);
+  --navbg:rgba(255,255,255,.7); --sheetbg:#fbf8ff; --nodebg:#ffffff; --dim:rgba(255,255,255,.35);
+  --hill1:rgba(255,255,255,.35); --hill2:rgba(255,255,255,.6); --danger:#d9536a;
+  color-scheme:light;
+}
+html{ transition:--s1 3s ease, --s2 3s ease, --s3 3s ease, --acc 2s ease, --acc2 2s ease; background:#140f30; }
 *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 body{ margin:0; min-height:100vh; font-family:var(--sans); color:var(--ink); background:transparent;-webkit-font-smoothing:antialiased; overflow-x:hidden; }
 button{ font:inherit; color:inherit; border:0; background:none; cursor:pointer; padding:0; }
@@ -47,60 +59,87 @@ input,textarea{ font:inherit; color:var(--ink); }
 .stars i{ position:absolute; border-radius:50%; background:#fff; animation:tw var(--d,4s) ease-in-out infinite; animation-delay:var(--dl,0s); }
 @keyframes tw{ 0%,100%{opacity:.15} 50%{opacity:.95} }
 .hills{ position:fixed; left:0; right:0; bottom:0; width:100%; height:26vh; z-index:-1; pointer-events:none; }
+.hills .h1{ fill:var(--hill1); transition:fill 3s; } .hills .h2{ fill:var(--hill2); transition:fill 3s; }
+/* 낮 구름 */
+.clouds{ position:fixed; inset:0 0 40% 0; z-index:-2; pointer-events:none; transition:opacity 3s ease; overflow:hidden; }
+.cloud{ position:absolute; width:var(--w,90px); height:calc(var(--w,90px) * .34); border-radius:999px; background:rgba(255,255,255,.85);
+  animation:drift var(--t,70s) linear infinite; animation-delay:var(--dl,0s); filter:drop-shadow(0 6px 10px rgba(120,140,200,.12)); }
+.cloud::before, .cloud::after{ content:''; position:absolute; background:inherit; border-radius:50%; }
+.cloud::before{ width:48%; height:140%; left:16%; bottom:20%; }
+.cloud::after{ width:36%; height:110%; right:14%; bottom:28%; }
+@keyframes drift{ from{ transform:translateX(-30vw); } to{ transform:translateX(130vw); } }
 
 /* ── 뼈대 ───────────────────────── */
 .app{ max-width:460px; margin:0 auto; padding:calc(var(--sat) + 14px) 16px calc(var(--navh) + var(--sab) + 28px); }
 .top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
-.brand{ font-family:var(--serif); font-weight:700; font-size:24px; letter-spacing:.06em; }
+.brand{ font-family:var(--serif); font-weight:400; font-size:24px; letter-spacing:.06em; }
 .brand small{ font-family:var(--sans); font-weight:400; font-size:11px; letter-spacing:.02em; color:var(--ink3); margin-left:6px; }
-.date{ font-size:12.5px; color:var(--ink3); margin-top:2px; }
+.date{ font-size:12.5px; color:var(--ink2); margin-top:2px; }
 .icon-btn{ width:42px; height:42px; flex:0 0 42px; border-radius:50%; display:grid; place-items:center; background:var(--glass2); border:1px solid var(--line); }
 .icon-btn svg{ width:20px; height:20px; }
 
 .card{ background:var(--glass); border:1px solid var(--line); border-radius:24px; padding:18px; -webkit-backdrop-filter:blur(18px) saturate(1.15); backdrop-filter:blur(18px) saturate(1.15); }
 .card + .card{ margin-top:14px; }
 .eyebrow{ font-size:11.5px; letter-spacing:.14em; color:var(--ink3); text-transform:uppercase; }
-.h-serif{ font-family:var(--serif); font-weight:700; }
+.h-serif{ font-family:var(--serif); font-weight:400; }
 .muted{ color:var(--ink3); }
 .view{ animation:fadeUp .5s ease both; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
 
 /* ── 오늘 ───────────────────────── */
-.plan-chip{ display:flex; align-items:center; gap:8px; margin:10px auto 0; padding:8px 14px 8px 12px; border-radius:999px; background:var(--glass2); border:1px solid var(--line); font-size:13px; color:var(--ink2); }
-.plan-chip b{ color:var(--ink); font-weight:700; letter-spacing:.02em; }
-.plan-chip .dot{ width:7px; height:7px; border-radius:50%; background:linear-gradient(135deg,var(--acc),var(--acc2)); box-shadow:0 0 10px var(--acc); }
-.plan-chip svg{ width:14px; height:14px; opacity:.6; }
+.bubble{ position:relative; margin:16px auto 0; width:fit-content; max-width:86%; padding:9px 16px; border-radius:18px; background:#fff; color:#4a3f78;
+  font-size:13.5px; line-height:1.5; text-align:center; word-break:keep-all; box-shadow:0 8px 20px -12px rgba(30,20,70,.45); animation:pop .5s cubic-bezier(.3,1.6,.5,1) both; }
+.bubble::after{ content:''; position:absolute; left:50%; bottom:-6px; width:13px; height:13px; background:#fff; transform:translateX(-50%) rotate(45deg); border-radius:0 0 3px 0; }
+@keyframes pop{ from{ transform:scale(.85); opacity:0; } to{ transform:none; opacity:1; } }
 
-.ring-box{ position:relative; width:min(100%, 320px); aspect-ratio:1; margin:8px auto 0; }
+.ring-box{ position:relative; width:min(100%, 300px); aspect-ratio:1; margin:20px auto 0; }
 .ring{ width:100%; height:100%; display:block; overflow:visible; }
-.ring .track{ fill:none; stroke:rgba(255,255,255,.08); stroke-width:12; }
-.ring .inner{ fill:none; stroke:rgba(255,255,255,.12); stroke-width:1; stroke-dasharray:1 6.2; }
-.ring .prog{ fill:none; stroke:url(#rg); stroke-width:12; stroke-linecap:round; transform:rotate(-90deg); transform-origin:150px 150px; transition:stroke-dashoffset 1s linear; filter:drop-shadow(0 0 8px color-mix(in srgb, var(--acc) 55%, transparent)); }
-.ring .mk{ fill:rgba(255,255,255,.28); stroke:rgba(20,14,44,.7); stroke-width:2; }
-.ring .mk.on{ fill:#fff; }
-.ring .mkl{ font-family:var(--sans); font-size:10px; fill:var(--ink3); text-anchor:middle; dominant-baseline:middle; }
-.ring .mkl.on{ fill:var(--ink); font-weight:700; }
-.ring .orb{ fill:#fff; filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 14px var(--acc)); }
-.ring-box.ach .prog{ animation:breathe 3s ease-in-out infinite; }
-@keyframes breathe{ 0%,100%{ filter:drop-shadow(0 0 6px color-mix(in srgb, var(--acc) 50%, transparent)); } 50%{ filter:drop-shadow(0 0 18px var(--acc)); } }
-.ring-center{ position:absolute; inset:18%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:4px; }
-.rc-label{ font-size:12.5px; color:var(--ink2); letter-spacing:.04em; }
-.rc-time{ font-weight:200; font-size:clamp(30px, 12.5vw, 50px); letter-spacing:.01em; font-variant-numeric:tabular-nums; line-height:1.08; }
-.rc-sub{ font-size:12.5px; color:var(--ink2); line-height:1.45; }
-.rc-sub b{ color:var(--ink); font-weight:600; }
-.rc-stage{ margin-top:6px; font-family:var(--serif); font-size:14px; padding:4px 12px; border-radius:999px; background:rgba(255,255,255,.08); color:var(--ink); }
+.ring .track{ fill:none; stroke:var(--track); stroke-width:16; }
+.ring .inner{ fill:none; stroke:var(--ink4); stroke-width:2.2; stroke-linecap:round; stroke-dasharray:0.1 9; }
+.ring .prog{ fill:none; stroke:url(#rg); stroke-width:16; stroke-linecap:round; transform:rotate(-90deg); transform-origin:150px 150px; transition:stroke-dashoffset 1s linear; }
+.ring .mk{ fill:var(--track); stroke:none; }
+.ring .mk.on{ fill:#fff; stroke:var(--acc); stroke-width:2.5; }
+.ring .mkl{ font-family:var(--serif); font-size:11px; fill:var(--ink3); text-anchor:middle; dominant-baseline:middle; }
+.ring .mkl.on{ fill:var(--ink); }
+.ring .orb{ fill:#fff; stroke:var(--acc); stroke-width:3.5; filter:drop-shadow(0 2px 4px rgba(30,20,70,.25)); }
+.ring-box.ach .prog{ animation:breathe 2.6s ease-in-out infinite; }
+@keyframes breathe{ 0%,100%{ opacity:1; } 50%{ opacity:.7; } }
+.ring-center{ position:absolute; inset:15%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:2px; }
+.mascot{ width:46%; height:auto; overflow:visible; animation:bob 3.4s ease-in-out infinite; }
+@keyframes bob{ 50%{ transform:translateY(-5px); } }
+.mascot .blink{ transform-box:fill-box; transform-origin:center; animation:blink 5s infinite; }
+@keyframes blink{ 0%,93%,100%{ transform:scaleY(1); } 96%{ transform:scaleY(.12); } }
+.mascot .rays{ transform-origin:50px 52px; animation:spin 26s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.mascot .spark{ transform-box:fill-box; transform-origin:center; animation:twinkle 1.8s ease-in-out infinite; }
+.mascot .spark:nth-of-type(2n){ animation-delay:-.9s; }
+@keyframes twinkle{ 50%{ transform:scale(.55); opacity:.5; } }
+.mascot .zz{ animation:zz 3s ease-in-out infinite; }
+@keyframes zz{ 0%{ opacity:0; transform:translate(0,4px); } 40%{ opacity:1; } 100%{ opacity:0; transform:translate(6px,-8px); } }
+.rc-time{ font-family:var(--serif); font-size:clamp(28px, 10.5vw, 40px); line-height:1.1; margin-top:2px; letter-spacing:.01em; white-space:nowrap; }
+.rc-time .dg{ display:inline-block; width:.58em; text-align:center; }
+.rc-time .cl{ display:inline-block; width:.3em; text-align:center; opacity:.6; }
+.rc-sub{ font-size:12.5px; color:var(--ink2); line-height:1.4; }
+.rc-sub b{ color:var(--ink); }
 
-.times{ display:flex; gap:10px; margin:6px 0 0; }
-.times > div{ flex:1 1 0; min-width:0; padding:11px 12px; border-radius:16px; background:var(--glass2); border:1px solid var(--line); }
-.times .t-k{ font-size:11px; color:var(--ink3); letter-spacing:.06em; }
-.times .t-v{ font-size:14px; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.times .t-edit{ display:flex; justify-content:space-between; align-items:center; gap:4px; }
-.times .t-edit svg{ width:13px; height:13px; opacity:.55; flex:0 0 auto; }
+.stage-pill{ display:flex; align-items:center; gap:8px; margin:4px auto 0; max-width:100%; padding:10px 14px 10px 12px; border-radius:999px; background:var(--glass2);
+  border:1px solid var(--line); font-size:14px; color:var(--ink); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
+.stage-pill .sp-dot{ width:22px; height:22px; flex:0 0 22px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--acc),var(--acc2)); color:#fff; font-size:12px; }
+.stage-pill b{ font-family:var(--serif); font-weight:400; font-size:15px; }
+.stage-pill small{ color:var(--ink3); font-size:12px; white-space:nowrap; }
+.stage-pill svg{ width:14px; height:14px; flex:0 0 14px; opacity:.55; }
 
-.primary{ display:block; width:100%; height:58px; margin-top:16px; border-radius:999px; font-size:17px; font-weight:700; letter-spacing:.04em; color:#1b1434;
-  background:linear-gradient(135deg, var(--acc), var(--acc2)); box-shadow:0 14px 34px -14px var(--acc), inset 0 1px 0 rgba(255,255,255,.5); transition:transform .15s ease; }
-.primary:active{ transform:scale(.98); }
-.primary.soft{ background:rgba(255,255,255,.1); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
+.times{ display:flex; gap:10px; margin:14px 0 0; }
+.times > *{ flex:1 1 0; min-width:0; padding:11px 12px; border-radius:20px; background:var(--glass2); border:1px solid var(--line); text-align:left; }
+.times .t-k{ font-size:11.5px; color:var(--ink3); }
+.times .t-v{ font-size:14.5px; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; justify-content:space-between; align-items:center; gap:4px; }
+.times .t-v span{ overflow:hidden; text-overflow:ellipsis; }
+.times svg{ width:13px; height:13px; opacity:.55; flex:0 0 auto; }
+
+.primary{ display:block; width:100%; height:56px; margin-top:16px; border-radius:999px; font-family:var(--serif); font-size:19px; letter-spacing:.03em; color:var(--btnink);
+  background:linear-gradient(135deg, var(--acc), var(--acc2)); box-shadow:0 12px 26px -14px var(--acc), inset 0 -3px 0 rgba(0,0,0,.08), inset 0 2px 0 rgba(255,255,255,.45); transition:transform .15s ease; }
+.primary:active{ transform:scale(.97); }
+.primary.soft{ background:var(--soft2); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
 .alarm-btn{ display:flex; align-items:center; justify-content:center; gap:8px; margin:12px auto 0; padding:10px 16px; border-radius:999px; font-size:13.5px; color:var(--ink); background:var(--glass2); border:1px solid var(--line); max-width:100%; }
 .alarm-btn svg{ width:16px; height:16px; flex:0 0 16px; color:var(--acc); }
 .alarm-btn.todo{ border-color:color-mix(in srgb, var(--acc) 55%, transparent); box-shadow:0 0 18px -6px var(--acc); }
@@ -110,37 +149,37 @@ input,textarea{ font:inherit; color:var(--ink); }
 .stage-card{ margin-top:22px; position:relative; overflow:hidden; }
 .stage-card::before{ content:''; position:absolute; right:-60px; top:-60px; width:180px; height:180px; border-radius:50%; background:radial-gradient(closest-side, color-mix(in srgb, var(--acc) 35%, transparent), transparent); pointer-events:none; }
 .sc-top{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.sc-title{ font-family:var(--serif); font-weight:700; font-size:22px; margin:8px 0 2px; }
+.sc-title{ font-family:var(--serif); font-weight:400; font-size:22px; margin:8px 0 2px; }
 .sc-range{ font-size:12px; color:var(--ink3); white-space:nowrap; }
 .sc-body{ font-size:14.5px; line-height:1.72; color:var(--ink2); margin:10px 0 0; word-break:keep-all; }
-.tip{ display:flex; gap:10px; align-items:flex-start; margin-top:14px; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.06); font-size:13.5px; line-height:1.6; color:var(--ink); word-break:keep-all; }
+.tip{ display:flex; gap:10px; align-items:flex-start; margin-top:14px; padding:12px 14px; border-radius:16px; background:var(--soft); font-size:13.5px; line-height:1.6; color:var(--ink); word-break:keep-all; }
 .tip svg{ width:18px; height:18px; flex:0 0 18px; margin-top:2px; color:var(--acc); }
 .next{ margin-top:16px; }
 .next-row{ display:flex; justify-content:space-between; gap:8px; font-size:12.5px; color:var(--ink2); }
 .next-row b{ color:var(--ink); font-weight:600; }
-.bar{ height:5px; border-radius:99px; background:rgba(255,255,255,.08); margin-top:8px; overflow:hidden; }
+.bar{ height:5px; border-radius:99px; background:var(--track); margin-top:8px; overflow:hidden; }
 .bar > i{ display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,var(--acc),var(--acc2)); transition:width 1s linear; }
 .more{ display:flex; align-items:center; gap:6px; margin-top:14px; font-size:13px; color:var(--ink2); }
 .more svg{ width:14px; height:14px; }
 .poem{ text-align:center; font-family:var(--serif); font-size:15px; color:var(--ink2); margin:26px 8px 4px; line-height:1.7; word-break:keep-all; }
 
 /* ── 몸의 변화 ───────────────────── */
-.page-h{ font-family:var(--serif); font-weight:700; font-size:24px; margin:14px 0 4px; }
+.page-h{ font-family:var(--serif); font-weight:400; font-size:24px; margin:14px 0 4px; }
 .page-sub{ font-size:13.5px; color:var(--ink2); line-height:1.65; margin:0 0 18px; word-break:keep-all; }
 .tl{ position:relative; padding-left:30px; }
-.tl::before{ content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; border-radius:2px; background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.06)); }
+.tl::before{ content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; border-radius:2px; background:linear-gradient(180deg, var(--ink4), transparent); }
 .tl-fill{ position:absolute; left:10px; top:8px; width:2px; border-radius:2px; background:linear-gradient(180deg,var(--acc),var(--acc2)); box-shadow:0 0 10px var(--acc); }
 .tl-item{ position:relative; margin-bottom:14px; }
-.tl-node{ position:absolute; left:-26px; top:20px; width:14px; height:14px; border-radius:50%; background:#2a2350; border:2px solid rgba(255,255,255,.3); }
+.tl-node{ position:absolute; left:-26px; top:20px; width:14px; height:14px; border-radius:50%; background:var(--nodebg); border:2px solid var(--ink4); }
 .tl-item.past .tl-node{ background:var(--acc); border-color:var(--acc); }
 .tl-item.now .tl-node{ background:#fff; border-color:#fff; box-shadow:0 0 0 5px color-mix(in srgb, var(--acc) 35%, transparent), 0 0 18px var(--acc); }
 .tl-item .card{ padding:16px; }
-.tl-item.future .card{ background:rgba(16,12,38,.22); }
+.tl-item.future .card{ background:var(--dim); }
 .tl-item.future .tl-t, .tl-item.future .tl-b{ opacity:.78; }
 .tl-h{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.tl-hr{ font-family:var(--serif); font-weight:700; font-size:13px; padding:3px 9px; border-radius:999px; background:rgba(255,255,255,.09); }
+.tl-hr{ font-family:var(--serif); font-weight:400; font-size:13px; padding:3px 9px; border-radius:999px; background:var(--soft); }
 .tl-now{ font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; color:#1b1434; background:linear-gradient(135deg,var(--acc),var(--acc2)); }
-.tl-t{ font-family:var(--serif); font-weight:700; font-size:18px; margin:8px 0 0; }
+.tl-t{ font-family:var(--serif); font-weight:400; font-size:18px; margin:8px 0 0; }
 .tl-b{ font-size:13.5px; line-height:1.7; color:var(--ink2); margin:6px 0 0; word-break:keep-all; }
 .tl-item .tip{ margin-top:10px; font-size:13px; }
 .caution{ border-color:rgba(255,190,170,.25); }
@@ -153,7 +192,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 .stats{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
 .stat{ padding:14px; border-radius:20px; background:var(--glass); border:1px solid var(--line); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); min-width:0; }
 .stat .k{ font-size:11.5px; color:var(--ink3); }
-.stat .v{ font-family:var(--serif); font-weight:700; font-size:24px; margin-top:4px; white-space:nowrap; }
+.stat .v{ font-family:var(--serif); font-weight:400; font-size:24px; margin-top:4px; white-space:nowrap; }
 .stat .v small{ font-family:var(--sans); font-weight:400; font-size:12px; color:var(--ink2); margin-left:3px; }
 .sec-h{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
 .sec-h h3{ font-family:var(--serif); font-size:17px; margin:0; }
@@ -163,13 +202,13 @@ input,textarea{ font:inherit; color:var(--ink); }
 .mnav span{ font-size:13.5px; min-width:76px; text-align:center; }
 .cal{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:5px; }
 .cal .dow{ font-size:10.5px; color:var(--ink3); text-align:center; padding-bottom:2px; }
-.cal .d{ position:relative; aspect-ratio:1; min-width:0; border-radius:10px; display:grid; place-items:center; font-size:11.5px; color:var(--ink2); background:rgba(255,255,255,.04); }
+.cal .d{ position:relative; aspect-ratio:1; min-width:0; border-radius:10px; display:grid; place-items:center; font-size:11.5px; color:var(--ink2); background:var(--soft); }
 .cal .d.lv1{ background:color-mix(in srgb, var(--acc) 18%, transparent); }
 .cal .d.lv2{ background:color-mix(in srgb, var(--acc) 36%, transparent); color:var(--ink); }
 .cal .d.lv3{ background:color-mix(in srgb, var(--acc) 58%, transparent); color:#fff; }
 .cal .d.lv4{ background:linear-gradient(135deg,var(--acc),var(--acc2)); color:#1b1434; font-weight:700; }
-.cal .d.today{ box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.75); }
-.cal .d.sel{ outline:2px solid #fff; outline-offset:1px; }
+.cal .d.today{ box-shadow:inset 0 0 0 1.5px var(--ink2); }
+.cal .d.sel{ outline:2px solid var(--ink); outline-offset:1px; }
 .cal .d.ach::after{ content:''; position:absolute; top:4px; right:4px; width:4px; height:4px; border-radius:50%; background:#fff; }
 .cal .d.lv4.ach::after{ background:#1b1434; }
 .cal .d.out{ visibility:hidden; }
@@ -178,7 +217,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 
 .rec{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:12px 4px; border-bottom:1px solid var(--line); }
 .rec:last-child{ border-bottom:0; }
-.rec-ic{ width:40px; height:40px; flex:0 0 40px; border-radius:14px; display:grid; place-items:center; font-family:var(--serif); font-weight:700; font-size:13px; background:rgba(255,255,255,.07); }
+.rec-ic{ width:40px; height:40px; flex:0 0 40px; border-radius:14px; display:grid; place-items:center; font-family:var(--serif); font-weight:400; font-size:13px; background:var(--soft); }
 .rec-ic.ok{ background:linear-gradient(135deg,var(--acc),var(--acc2)); color:#1b1434; }
 .rec-m{ flex:1; min-width:0; }
 .rec-t{ font-size:14.5px; }
@@ -188,51 +227,51 @@ input,textarea{ font:inherit; color:var(--ink); }
 .empty{ text-align:center; padding:22px 8px; font-size:13.5px; color:var(--ink3); line-height:1.7; }
 
 .w-row{ display:flex; gap:8px; }
-.w-row input{ flex:1; min-width:0; height:46px; padding:0 14px; border-radius:14px; background:rgba(255,255,255,.07); border:1px solid var(--line); font-size:16px; outline:none; }
+.w-row input{ flex:1; min-width:0; height:46px; padding:0 14px; border-radius:14px; background:var(--soft); border:1px solid var(--line); font-size:16px; outline:none; }
 .w-row input:focus{ border-color:var(--acc); }
 .w-row button{ flex:0 0 auto; height:46px; padding:0 18px; border-radius:14px; font-weight:700; color:#1b1434; background:linear-gradient(135deg,var(--acc),var(--acc2)); }
 .w-chart{ width:100%; height:auto; display:block; margin-top:14px; }
 .w-sum{ display:flex; justify-content:space-between; gap:8px; margin-top:8px; font-size:12.5px; color:var(--ink2); }
 .w-list{ display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
-.w-chip{ display:flex; align-items:center; gap:6px; padding:5px 6px 5px 10px; border-radius:999px; background:rgba(255,255,255,.06); font-size:12px; color:var(--ink2); }
+.w-chip{ display:flex; align-items:center; gap:6px; padding:5px 6px 5px 10px; border-radius:999px; background:var(--soft); font-size:12px; color:var(--ink2); }
 .w-chip button{ width:20px; height:20px; border-radius:50%; display:grid; place-items:center; color:var(--ink3); }
 
 /* ── 아래 메뉴 ───────────────────── */
 .nav{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(var(--sab) + 12px); width:min(calc(100% - 32px), 420px); height:var(--navh);
-  display:flex; padding:6px; gap:4px; border-radius:24px; background:rgba(16,12,38,.55); border:1px solid var(--line); -webkit-backdrop-filter:blur(20px) saturate(1.2); backdrop-filter:blur(20px) saturate(1.2); z-index:20; }
+  display:flex; padding:6px; gap:4px; border-radius:24px; background:var(--navbg); border:1px solid var(--line); -webkit-backdrop-filter:blur(20px) saturate(1.2); backdrop-filter:blur(20px) saturate(1.2); z-index:20; }
 .nav button{ flex:1 1 0; min-width:0; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:11px; color:var(--ink3); transition:background .25s, color .25s; }
 .nav button svg{ width:21px; height:21px; }
-.nav button.on{ color:var(--ink); background:rgba(255,255,255,.1); }
+.nav button.on{ color:var(--ink); background:var(--soft2); }
 .nav button.on svg{ color:var(--acc); filter:drop-shadow(0 0 6px var(--acc)); }
 
 /* ── 시트 ───────────────────────── */
 .sheet-wrap{ position:fixed; inset:0; z-index:50; background:rgba(8,6,20,.55); opacity:0; pointer-events:none; transition:opacity .3s ease; display:flex; align-items:flex-end; justify-content:center; }
 .sheet-wrap.open{ opacity:1; pointer-events:auto; }
 .sheet{ width:100%; max-width:480px; max-height:88vh; overflow:auto; padding:10px 18px calc(var(--sab) + 22px); border-radius:28px 28px 0 0;
-  background:linear-gradient(180deg, color-mix(in srgb, var(--s2) 70%, #120d2c), #120d2c 70%); border:1px solid var(--line); border-bottom:0; transform:translateY(40px); transition:transform .35s cubic-bezier(.2,.8,.2,1); }
+  background:var(--sheetbg); box-shadow:0 -10px 40px -10px rgba(20,10,60,.35); border:1px solid var(--line); border-bottom:0; transform:translateY(40px); transition:transform .35s cubic-bezier(.2,.8,.2,1); }
 .sheet-wrap.open .sheet{ transform:none; }
-.grab{ width:40px; height:4px; border-radius:4px; background:rgba(255,255,255,.22); margin:2px auto 14px; }
-.sh-t{ font-family:var(--serif); font-weight:700; font-size:21px; margin:0 0 6px; }
+.grab{ width:40px; height:4px; border-radius:4px; background:var(--ink4); margin:2px auto 14px; }
+.sh-t{ font-family:var(--serif); font-weight:400; font-size:21px; margin:0 0 6px; }
 .sh-s{ font-size:13.5px; color:var(--ink2); line-height:1.65; margin:0 0 16px; word-break:keep-all; }
 .plans{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
-.pl{ text-align:left; padding:14px; border-radius:20px; background:rgba(255,255,255,.06); border:1px solid var(--line); min-width:0; }
+.pl{ text-align:left; padding:14px; border-radius:20px; background:var(--soft); border:1px solid var(--line); min-width:0; }
 .pl.on{ border-color:transparent; background:linear-gradient(135deg, color-mix(in srgb,var(--acc) 30%, transparent), color-mix(in srgb,var(--acc2) 22%, transparent)); box-shadow:inset 0 0 0 1.5px var(--acc); }
-.pl-n{ font-family:var(--serif); font-weight:700; font-size:22px; }
+.pl-n{ font-family:var(--serif); font-weight:400; font-size:22px; }
 .pl-s{ font-size:12px; color:var(--ink2); margin-top:3px; }
 .pl-d{ font-size:11px; color:var(--ink3); margin-top:6px; }
 .pl.wide{ grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .step{ display:flex; align-items:center; gap:8px; }
-.step button{ width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.1); font-size:18px; }
+.step button{ width:36px; height:36px; border-radius:50%; background:var(--soft2); font-size:18px; }
 .step b{ font-family:var(--serif); font-size:20px; min-width:46px; text-align:center; }
 .field{ display:block; margin-bottom:14px; }
 .field span{ display:block; font-size:12px; color:var(--ink3); margin-bottom:6px; }
-.field input, .field textarea{ width:100%; padding:12px 14px; border-radius:14px; background:rgba(255,255,255,.07); border:1px solid var(--line); font-size:16px; outline:none; }
+.field input, .field textarea{ width:100%; padding:12px 14px; border-radius:14px; background:var(--soft); border:1px solid var(--line); font-size:16px; outline:none; }
 .field textarea{ min-height:84px; resize:vertical; line-height:1.6; }
 .field input:focus, .field textarea:focus{ border-color:var(--acc); }
 .quick{ display:flex; flex-wrap:wrap; gap:6px; margin:-4px 0 14px; }
-.quick button{ padding:7px 12px; border-radius:999px; background:rgba(255,255,255,.07); font-size:12.5px; color:var(--ink2); }
+.quick button{ padding:7px 12px; border-radius:999px; background:var(--soft); font-size:12.5px; color:var(--ink2); }
 .moods{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; margin-bottom:14px; }
-.mood{ display:flex; align-items:center; gap:8px; padding:11px 12px; border-radius:16px; background:rgba(255,255,255,.06); border:1px solid var(--line); font-size:13.5px; text-align:left; min-width:0; }
+.mood{ display:flex; align-items:center; gap:8px; padding:11px 12px; border-radius:16px; background:var(--soft); border:1px solid var(--line); font-size:13.5px; text-align:left; min-width:0; }
 .mood i{ width:10px; height:10px; border-radius:50%; flex:0 0 10px; }
 .mood.on{ border-color:var(--acc); background:color-mix(in srgb, var(--acc) 18%, transparent); }
 .big-dur{ text-align:center; margin:6px 0 4px; }
@@ -240,13 +279,13 @@ input,textarea{ font:inherit; color:var(--ink); }
 .big-dur .s{ font-size:13px; color:var(--ink2); margin-top:2px; }
 .row-btns{ display:flex; gap:8px; margin-top:6px; }
 .row-btns .primary{ margin-top:0; flex:1 1 0; min-width:0; height:52px; font-size:15.5px; }
-.danger{ color:#ffb3b3; }
+.danger{ color:var(--danger); }
 .set-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 2px; border-bottom:1px solid var(--line); width:100%; text-align:left; }
 .set-row:last-child{ border-bottom:0; }
 .set-row .k{ font-size:14.5px; }
 .set-row .d{ font-size:12px; color:var(--ink3); margin-top:2px; line-height:1.5; }
 .set-row .v{ font-size:13px; color:var(--ink2); white-space:nowrap; }
-.sw{ width:46px; height:28px; flex:0 0 46px; border-radius:99px; background:rgba(255,255,255,.14); position:relative; transition:background .25s; }
+.sw{ width:46px; height:28px; flex:0 0 46px; border-radius:99px; background:var(--ink4); position:relative; transition:background .25s; }
 .sw::after{ content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:transform .25s; }
 .sw.on{ background:linear-gradient(135deg,var(--acc),var(--acc2)); }
 .sw.on::after{ transform:translateX(18px); }
@@ -270,15 +309,21 @@ input,textarea{ font:inherit; color:var(--ink); }
 <div class="sky"></div>
 <div class="glow"></div>
 <div class="stars" id="stars"></div>
+<div class="clouds" id="clouds" aria-hidden="true">
+  <i class="cloud" style="--w:110px;top:9%;--t:95s;--dl:-20s"></i>
+  <i class="cloud" style="--w:70px;top:22%;--t:75s;--dl:-55s;opacity:.8"></i>
+  <i class="cloud" style="--w:140px;top:34%;--t:120s;--dl:-80s;opacity:.7"></i>
+  <i class="cloud" style="--w:60px;top:15%;--t:65s;--dl:-5s;opacity:.9"></i>
+</div>
 <svg class="hills" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
-  <path d="M0 70 C 60 40, 110 52, 160 64 S 260 40, 320 52 S 380 62, 400 56 L400 120 L0 120Z" fill="rgba(10,7,26,.32)"/>
-  <path d="M0 92 C 50 74, 120 80, 180 90 S 290 70, 340 82 S 390 92, 400 88 L400 120 L0 120Z" fill="rgba(8,6,22,.55)"/>
+  <path class="h1" d="M0 70 C 60 40, 110 52, 160 64 S 260 40, 320 52 S 380 62, 400 56 L400 120 L0 120Z"/>
+  <path class="h2" d="M0 92 C 50 74, 120 80, 180 90 S 290 70, 340 82 S 390 92, 400 88 L400 120 L0 120Z"/>
 </svg>
 
 <div class="app">
   <header class="top">
     <div>
-      <div class="brand">비움<small>간헐적 단식</small></div>
+      <div class="brand">비움</div>
       <div class="date" id="todayLabel"></div>
     </div>
     <button class="icon-btn" id="btnSettings" aria-label="설정">
@@ -289,7 +334,7 @@ input,textarea{ font:inherit; color:var(--ink); }
   <main>
     <!-- 오늘 -->
     <section class="view" id="v-today">
-      <button class="plan-chip" id="planChip"></button>
+      <div class="bubble" id="bubble"></div>
       <div class="ring-box" id="ringBox">
         <svg class="ring" viewBox="0 0 300 300" aria-hidden="true">
           <defs>
@@ -305,18 +350,16 @@ input,textarea{ font:inherit; color:var(--ink); }
           <circle class="orb" id="orb" r="7" cx="150" cy="32"/>
         </svg>
         <div class="ring-center">
-          <div class="rc-label" id="rcLabel"></div>
+          <div id="mascot"></div>
           <div class="rc-time" id="rcTime"></div>
           <div class="rc-sub" id="rcSub"></div>
-          <div class="rc-stage" id="rcStage" hidden></div>
         </div>
       </div>
+      <button class="stage-pill" id="stagePill"></button>
       <div class="times" id="times"></div>
       <button class="primary" id="mainBtn"></button>
       <button class="alarm-btn" id="alarmBtn" hidden></button>
       <button class="link" id="subBtn"></button>
-      <div class="card stage-card" id="stageCard"></div>
-      <p class="poem" id="poem"></p>
     </section>
 
     <!-- 몸의 변화 -->
@@ -492,14 +535,36 @@ function phase(now){
   return { p:'idle' };
 }
 
-/* ── 하늘 테마 ─────────────────────── */
-function applyTheme(t){
-  const st = document.documentElement.style;
+/* ── 하늘: 실제 시간(아침·낮·노을·밤)에 따라 ── */
+const SKY = [
+  { k:'dawn',    from:5,  to:7,  sky:['#6d6bb3','#c7a3d4','#ffd3b5'], tone:'dark',  stars:.15, clouds:.35, greet:'고요한 새벽이에요' },
+  { k:'morning', from:7,  to:11, sky:['#8fc6ff','#c9e4ff','#fff0e0'], tone:'light', stars:0,   clouds:1,   greet:'좋은 아침이에요' },
+  { k:'day',     from:11, to:16, sky:['#78b9ff','#b4dbff','#eaf5ff'], tone:'light', stars:0,   clouds:1,   greet:'포근한 낮이에요' },
+  { k:'sunset',  from:16, to:19, sky:['#5e57a8','#d488ad','#ffc38f'], tone:'dark',  stars:.1,  clouds:.45, greet:'노을이 예쁜 저녁이에요' },
+  { k:'evening', from:19, to:22, sky:['#211c4e','#40357a','#7c64aa'], tone:'dark',  stars:.7,  clouds:0,   greet:'편안한 저녁이에요' },
+  { k:'night',   from:22, to:29, sky:['#110f30','#201d57','#3e357a'], tone:'dark',  stars:1,   clouds:0,   greet:'별이 뜬 밤이에요' }
+];
+function skyNow(){ const h = new Date().getHours(), hh = h < 5 ? h + 24 : h; return SKY.find(s => hh >= s.from && hh < s.to) || SKY[SKY.length - 1]; }
+let skyKey = '';
+function applySky(force){
+  const t = skyNow(), day = dkey(Date.now());
+  if (!force && t.k + day === skyKey) return;
+  skyKey = t.k + day;
+  const r = document.documentElement, st = r.style;
   st.setProperty('--s1', t.sky[0]); st.setProperty('--s2', t.sky[1]); st.setProperty('--s3', t.sky[2]);
-  st.setProperty('--acc', t.acc[0]); st.setProperty('--acc2', t.acc[1]);
+  r.dataset.tone = t.tone;
   $('#stars').style.opacity = t.stars;
+  $('#clouds').style.opacity = t.clouds;
   $('#metaTheme').setAttribute('content', t.sky[0]);
+  $('#todayLabel').textContent = `${t.greet} · ${new Date().toLocaleDateString('ko-KR', { month:'long', day:'numeric', weekday:'short' })}`;
 }
+/* 링·버튼 색: 단식 단계에 따라 */
+const STAGE_ACC = [
+  ['#ff9f7a','#ff86a6'], ['#f48cc4','#b892ff'], ['#b892ff','#8fa4ff'], ['#8fa4ff','#6ccbff'], ['#5ccfee','#5fdcb4'],
+  ['#5fdcae','#a6dc6c'], ['#ff8cc2','#c08cff'], ['#ffa37e','#ff8ca4'], ['#ffc46e','#ff9f7a']
+];
+const EAT_ACC = ['#ffc46e','#ff9f7a'], IDLE_ACC = ['#b8a4ff','#ff9fcb'];
+function applyAccent(a){ const st = document.documentElement.style; st.setProperty('--acc', a[0]); st.setProperty('--acc2', a[1]); }
 function makeStars(){
   let h = '';
   for (let k = 0; k < 70; k++) {
@@ -508,6 +573,42 @@ function makeStars(){
   }
   $('#stars').innerHTML = h;
 }
+
+/* ── 달·해 친구 ─────────────────────── */
+const FACE = '#4a3d6b';
+function mascotSvg(kind, mood){
+  const m = mood === 'star' ? 'happy' : mood;
+  const eyes = {
+    calm:   `<ellipse class="blink" cx="40" cy="51" rx="3.4" ry="4.2" fill="${FACE}"/><ellipse class="blink" cx="60" cy="51" rx="3.4" ry="4.2" fill="${FACE}"/>`,
+    sleepy: `<path d="M35 52q5 4 10 0M55 52q5 4 10 0" stroke="${FACE}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`,
+    happy:  `<path d="M35 54q5-6 10 0M55 54q5-6 10 0" stroke="${FACE}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`
+  }[m];
+  const mouth = {
+    calm:   `<path d="M46 61q4 4 8 0" stroke="${FACE}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    sleepy: `<ellipse cx="50" cy="62.5" rx="2.6" ry="2.2" fill="${FACE}"/>`,
+    happy:  `<path d="M44.5 60q5.5 8 11 0z" fill="${FACE}"/>`
+  }[m];
+  const cheeks = `<ellipse cx="31.5" cy="60" rx="5.5" ry="3.2" fill="#ffadc2" opacity=".85"/><ellipse cx="68.5" cy="60" rx="5.5" ry="3.2" fill="#ffadc2" opacity=".85"/>`;
+  const spark = (x, y, s) => `<path class="spark" d="M${x} ${y - s}Q${x} ${y} ${x + s} ${y}Q${x} ${y} ${x} ${y + s}Q${x} ${y} ${x - s} ${y}Q${x} ${y} ${x} ${y - s}Z" fill="#fff6a6"/>`;
+  let body, defs = '';
+  if (kind === 'sun') {
+    let rays = '';
+    for (let k = 0; k < 8; k++) {
+      const a = k * Math.PI / 4;
+      rays += `<line x1="${(50 + 39 * Math.cos(a)).toFixed(1)}" y1="${(52 + 39 * Math.sin(a)).toFixed(1)}" x2="${(50 + 46 * Math.cos(a)).toFixed(1)}" y2="${(52 + 46 * Math.sin(a)).toFixed(1)}"/>`;
+    }
+    defs = `<defs><radialGradient id="sunShade" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff3b8" stop-opacity=".9"/><stop offset="1" stop-color="#ffb347" stop-opacity=".35"/></radialGradient></defs>`;
+    body = `<g class="rays" stroke="#ffc24f" stroke-width="6" stroke-linecap="round">${rays}</g><circle cx="50" cy="52" r="31" fill="#ffd96e"/><circle cx="50" cy="52" r="31" fill="url(#sunShade)"/>`;
+  } else {
+    body = `<circle cx="50" cy="52" r="41" fill="#fff4cc" opacity=".2"/><circle cx="50" cy="52" r="33" fill="#fff3c8"/>`
+      + `<circle cx="33" cy="37" r="4.5" fill="#f5e2a4"/><circle cx="71" cy="69" r="3.5" fill="#f5e2a4"/><circle cx="70" cy="35" r="2.6" fill="#f5e2a4"/>`;
+  }
+  const extra = mood === 'sleepy'
+    ? `<text class="zz" x="80" y="22" font-family="Jua" font-size="15" fill="currentColor">z</text><text class="zz" x="90" y="10" font-family="Jua" font-size="10" fill="currentColor" style="animation-delay:-1.4s">z</text>`
+    : mood === 'star' ? spark(4, 18, 7) + spark(96, 24, 6) + spark(10, 88, 5) + spark(92, 86, 7) : '';
+  return `<svg class="mascot" viewBox="0 0 100 100" style="color:var(--ink)" aria-hidden="true">${defs}${body}${cheeks}${eyes}${mouth}${extra}</svg>`;
+}
+const moodFor = ph => ph.ach ? 'star' : ph.i <= 1 ? 'sleepy' : ph.i <= 3 ? 'calm' : 'happy';
 
 /* ── 아이콘 ─────────────────────────── */
 const IC = {
@@ -525,142 +626,141 @@ const IC = {
 const R = 118, C = 2 * Math.PI * R;
 let sig = '';
 function polar(frac, r){ const a = frac * 2 * Math.PI - Math.PI/2; return [150 + r * Math.cos(a), 150 + r * Math.sin(a)]; }
+const digits = t => esc(t).replace(/\d/g, d => `<span class="dg">${d}</span>`).replace(/:/g, '<span class="cl">:</span>');
 
 function renderToday(){
   const now = Date.now(), ph = phase(now), pl = plan();
-  const chip = $('#planChip');
-  chip.innerHTML = `<i class="dot"></i><span>단식 계획</span><b>${esc(planName(pl))}</b>${IC.down}`;
-
+  applySky();
   const marks = $('#marks'); marks.innerHTML = '';
-  const ringBox = $('#ringBox'); ringBox.classList.toggle('ach', ph.p === 'fast' && ph.ach);
+  $('#ringBox').classList.toggle('ach', ph.p === 'fast' && ph.ach);
   $('#prog').setAttribute('stroke-dasharray', C.toFixed(2));
+  const pill = $('#stagePill'), times = $('#times'), btn = $('#mainBtn'), ab = $('#alarmBtn'), sub = $('#subBtn');
+  const last = S.fasts[S.fasts.length - 1];
 
   if (ph.p === 'fast') {
-    const goal = S.cur.goal;
+    const goal = S.cur.goal, s = STAGES[ph.i];
     let m = '';
-    STAGES.forEach(s => {
-      if (s.h <= 0 || s.h >= goal) return;
-      const [x, y] = polar(s.h / goal, R), [lx, ly] = polar(s.h / goal, R + 22);
-      const on = ph.hrs >= s.h ? ' on' : '';
-      m += `<circle class="mk${on}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5"/><text class="mkl${on}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}">${s.h}</text>`;
+    STAGES.forEach(st => {
+      if (st.h <= 0 || st.h >= goal) return;
+      const [x, y] = polar(st.h / goal, R), [lx, ly] = polar(st.h / goal, R + 24);
+      const on = ph.hrs >= st.h ? ' on' : '';
+      m += `<circle class="mk${on}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5"/><text class="mkl${on}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}">${st.h}</text>`;
     });
-    const [gx, gy] = polar(0, R + 22);
+    const [gx, gy] = polar(0, R + 24);
     m += `<text class="mkl${ph.ach ? ' on' : ''}" x="${gx}" y="${gy.toFixed(1)}">${goal}h</text>`;
     marks.innerHTML = m;
-    applyTheme(STAGES[ph.i]);
-    $('#rcLabel').textContent = `단식 중 · ${planName(pl)}`;
-    $('#rcStage').hidden = false; $('#rcStage').textContent = STAGES[ph.i].short;
-    $('#times').innerHTML = `
-      <div><div class="t-k">시작</div><button class="t-v t-edit" id="editStart" style="width:100%"><span>${esc(when(S.cur.start))}</span>${IC.edit}</button></div>
-      <div><div class="t-k">목표 · ${goal}시간</div><div class="t-v">${esc(when(S.cur.start + goal * H))}</div></div>`;
+    applyAccent(STAGE_ACC[ph.i] || STAGE_ACC[0]);
+    $('#mascot').innerHTML = mascotSvg('moon', moodFor(ph));
+    $('#bubble').textContent = ph.ach ? '목표 달성! 오늘의 당신, 정말 멋져요 ✦' : s.poem;
+    pill.innerHTML = `<span class="sp-dot">✦</span><b>${esc(s.name)}</b><small>몸의 변화</small>${IC.right}`;
+    pill.onclick = stageSheet;
+    times.innerHTML = `
+      <button id="editStart"><div class="t-k">시작</div><div class="t-v"><span>${esc(when(S.cur.start))}</span>${IC.edit}</div></button>
+      <button id="goalChip"><div class="t-k">목표 ${goal}시간</div><div class="t-v"><span>${esc(when(S.cur.start + goal * H))}</span>${IC.down}</div></button>`;
     $('#editStart').onclick = editStartSheet;
-    const btn = $('#mainBtn'); btn.textContent = '단식 마치기'; btn.classList.toggle('soft', !ph.ach);
-    $('#subBtn').textContent = '목표 시간 바꾸기'; $('#subBtn').onclick = planSheet;
-    const endAt = S.cur.start + goal * H, ab = $('#alarmBtn');
+    $('#goalChip').onclick = planSheet;
+    btn.textContent = '단식 마치기'; btn.classList.toggle('soft', !ph.ach);
+    sub.hidden = true;
+    const endAt = S.cur.start + goal * H;
+    ab.hidden = ph.ach;
     if (APP) {
       // 앱에서는 폰이 직접 정각에 알람을 울려요 → 알림만 켜져 있으면 됨
-      ab.hidden = ph.ach;
       ab.className = 'alarm-btn ' + (S.notify ? 'done' : 'todo');
       ab.innerHTML = S.notify ? `${IC.check}<span>${esc(clock(endAt))}에 알람이 울려요</span>` : `${IC.bell}<span>목표 시각에 알람 받기</span>`;
       ab.onclick = S.notify ? () => toast('목표 시각과 단계마다 폰 알림이 와요') : () => enableAppNotify();
     } else {
-      ab.hidden = ph.ach;
       const added = S.cur.cal === endAt;
       ab.className = 'alarm-btn ' + (added ? 'done' : 'todo');
       ab.innerHTML = added ? `${IC.check}<span>캘린더 알람 넣음 · ${esc(clock(endAt))}</span>` : `${IC.bell}<span>끝나는 시각에 알람 맞추기</span>`;
       ab.onclick = alarmSheet;
     }
-    renderStageCard(ph);
-    $('#poem').textContent = ph.ach ? '목표에 닿았어요. 오늘의 당신, 참 단단해요.' : STAGES[ph.i].poem;
   } else if (ph.p === 'eat') {
-    $('#alarmBtn').hidden = true;
-    applyTheme(THEME_EAT);
-    $('#rcLabel').textContent = '먹는 시간';
-    $('#rcStage').hidden = true;
-    const nextStart = S.lastEnd + ph.win;
-    $('#times').innerHTML = `
-      <div><div class="t-k">단식 마침</div><div class="t-v">${esc(when(S.lastEnd))}</div></div>
-      <div><div class="t-k">다음 단식 권장</div><div class="t-v">${esc(when(nextStart))}</div></div>`;
-    const btn = $('#mainBtn'); btn.textContent = '단식 시작'; btn.classList.remove('soft');
-    $('#subBtn').textContent = '이미 시작했어요 · 시작 시간 고르기'; $('#subBtn').onclick = () => pickStartSheet();
-    const last = S.fasts[S.fasts.length - 1];
-    $('#stageCard').innerHTML = `
-      <div class="eyebrow">먹는 시간</div>
-      <div class="sc-title">잘 먹는 것도 단식의 일부예요</div>
-      <p class="sc-body">단식을 마친 뒤 첫 식사는 부드럽고 따뜻한 것부터 천천히 시작해 보세요. 단백질과 채소를 넉넉히, 물도 충분히 마셔 주세요.</p>
-      ${last ? `<div class="tip">${IC.leaf}<div>지난 단식 <b>${esc(dur(last.end - last.start))}</b> · ${esc(STAGES[stageIdx((last.end-last.start)/H)].name)}까지 닿았어요.</div></div>` : ''}`;
-    $('#poem').textContent = '채우는 시간도, 비우는 시간만큼 소중해요.';
+    ab.hidden = true;
+    applyAccent(EAT_ACC);
+    $('#mascot').innerHTML = mascotSvg('sun', 'happy');
+    $('#bubble').textContent = '맛있게 먹어요! 채우는 시간도 소중해요';
+    pill.innerHTML = `<span class="sp-dot">♥</span><b>먹는 시간</b><small>식사 팁</small>${IC.right}`;
+    pill.onclick = eatSheet;
+    times.innerHTML = `
+      <div><div class="t-k">단식 마침</div><div class="t-v"><span>${esc(when(S.lastEnd))}</span></div></div>
+      <div><div class="t-k">다음 단식</div><div class="t-v"><span>${esc(when(S.lastEnd + ph.win))}</span></div></div>`;
+    btn.textContent = '단식 시작'; btn.classList.remove('soft');
+    sub.hidden = false; sub.textContent = '이미 시작했어요 · 시작 시간 고르기'; sub.onclick = () => pickStartSheet();
   } else {
-    $('#alarmBtn').hidden = true;
-    applyTheme(THEME_IDLE);
-    $('#rcLabel').textContent = '준비됐어요';
-    $('#rcStage').hidden = true;
-    const last = S.fasts[S.fasts.length - 1];
-    $('#times').innerHTML = `
-      <div><div class="t-k">오늘의 계획</div><div class="t-v">${pl.f}시간 비우기${pl.e ? ` · ${pl.e}시간 먹기` : ''}</div></div>
-      <div><div class="t-k">지난 단식</div><div class="t-v">${last ? esc(dur(last.end - last.start)) + ' · ' + esc(dayWord(last.end)) : '아직 없어요'}</div></div>`;
-    const btn = $('#mainBtn'); btn.textContent = '단식 시작'; btn.classList.remove('soft');
-    $('#subBtn').textContent = '이미 시작했어요 · 시작 시간 고르기'; $('#subBtn').onclick = () => pickStartSheet();
-    $('#stageCard').innerHTML = `
-      <div class="eyebrow">비움에 오신 걸 환영해요</div>
-      <div class="sc-title">단식하는 동안, 몸은 이렇게 달라져요</div>
-      <p class="sc-body">단식을 시작하면 시간이 흐를수록 몸 안에서 일어나는 변화를 단계별로 알려 드릴게요. 하늘의 색도 함께 바뀌어요.</p>
-      <div class="tip">${IC.leaf}<div>${STAGES.slice(3,7).map(s => `<b>${s.h}시간</b> ${esc(s.short)}`).join(' · ')}</div></div>
-      <button class="more" data-go="stages">모든 단계 보기 ${IC.right}</button>`;
-    $('#poem').textContent = '준비가 되면, 가볍게 시작해 볼까요.';
+    ab.hidden = true;
+    applyAccent(IDLE_ACC);
+    $('#mascot').innerHTML = mascotSvg('moon', 'calm');
+    $('#bubble').textContent = last ? '오늘도 가볍게, 함께 비워 볼까요?' : '안녕하세요! 저랑 같이 비워 볼까요?';
+    pill.innerHTML = `<span class="sp-dot">✦</span><b>몸의 변화 미리 보기</b>${IC.right}`;
+    pill.onclick = () => go('stages');
+    times.innerHTML = `
+      <button id="planBtn"><div class="t-k">단식 계획</div><div class="t-v"><span>${esc(planName(pl))} · ${pl.f}시간</span>${IC.down}</div></button>
+      <div><div class="t-k">지난 단식</div><div class="t-v"><span>${last ? esc(dur(last.end - last.start)) + ' · ' + esc(dayWord(last.end)) : '아직 없어요'}</span></div></div>`;
+    $('#planBtn').onclick = planSheet;
+    btn.textContent = '단식 시작'; btn.classList.remove('soft');
+    sub.hidden = false; sub.textContent = '이미 시작했어요 · 시작 시간 고르기'; sub.onclick = () => pickStartSheet();
   }
-  bindGo($('#stageCard'));
   sig = sigOf(ph);
   tickToday(now, ph);
 }
 
-function renderStageCard(ph){
+/* 몸의 변화: 보고 싶을 때 눌러서 열어요 */
+function stageSheet(){
+  const ph = phase(Date.now());
+  if (ph.p !== 'fast') return;
   const s = STAGES[ph.i], nx = STAGES[ph.i + 1];
   let next = '';
   if (nx) {
     const span = (nx.h - s.h) * H, done = ph.el - s.h * H;
-    next = `<div class="next"><div class="next-row"><span>다음 · <b>${esc(nx.name)}</b></span><span id="nextLeft">${esc(dur(nx.h * H - ph.el))} 남음</span></div>
-      <div class="bar"><i id="nextBar" style="width:${Math.min(100, done / span * 100).toFixed(1)}%"></i></div></div>`;
+    next = `<div class="next"><div class="next-row"><span>다음 · <b>${esc(nx.name)}</b></span><span>${esc(dur(nx.h * H - ph.el))} 남음</span></div>
+      <div class="bar"><i style="width:${Math.min(100, done / span * 100).toFixed(1)}%"></i></div></div>`;
   }
-  $('#stageCard').innerHTML = `
-    <div class="sc-top"><div class="eyebrow">지금 몸은</div><div class="sc-range">${esc(rangeOf(ph.i))}</div></div>
+  openSheet(`
+    <div class="sc-top"><div class="eyebrow">지금 몸은 · ${esc(dur(ph.el))}째</div><div class="sc-range">${esc(rangeOf(ph.i))}</div></div>
     <div class="sc-title">${esc(s.name)}</div>
     <p class="sc-body">${esc(s.body)}</p>
     <div class="tip">${IC.leaf}<div>${esc(s.tip)}</div></div>
     ${next}
-    <button class="more" data-go="stages">모든 단계 보기 ${IC.right}</button>`;
+    <button class="primary soft" id="allStages" style="margin-top:20px">모든 단계 보기</button>`, () => {
+    $('#allStages').onclick = () => { closeSheet(); go('stages'); };
+  });
+}
+function eatSheet(){
+  const last = S.fasts[S.fasts.length - 1];
+  openSheet(`
+    <div class="eyebrow">먹는 시간</div>
+    <div class="sc-title">잘 먹는 것도 단식의 일부예요</div>
+    <p class="sc-body">단식을 마친 뒤 첫 식사는 부드럽고 따뜻한 것부터 천천히 시작해 보세요. 단백질과 채소를 넉넉히, 물도 충분히 마셔 주세요.</p>
+    ${last ? `<div class="tip">${IC.leaf}<div>지난 단식 <b>${esc(dur(last.end - last.start))}</b> · ${esc(STAGES[stageIdx((last.end - last.start) / H)].name)}까지 닿았어요.</div></div>` : ''}
+    <button class="primary soft" id="eatClose" style="margin-top:20px">알겠어요</button>`, () => {
+    $('#eatClose').onclick = closeSheet;
+  });
 }
 
-const sigOf = ph => ph.p === 'fast' ? `f${ph.i}${ph.ach ? 'a' : ''}${S.cur.goal}${S.cur.start}` : ph.p + (S.lastEnd || '') + S.planId + S.customF;
+const sigOf = ph => ph.p === 'fast' ? `f${ph.i}${ph.ach ? 'a' : ''}${S.cur.goal}${S.cur.start}${S.notify}` : ph.p + (S.lastEnd || '') + S.planId + S.customF + S.fasts.length;
 
 function tickToday(now, ph){
   let frac = 0;
   if (ph.p === 'fast') {
     frac = Math.min(1, ph.el / ph.goalMs);
-    $('#rcTime').textContent = hms(ph.el);
+    $('#rcTime').innerHTML = digits(hms(ph.el));
     $('#rcSub').innerHTML = ph.ach
       ? `<b>목표 달성 ✦</b> +${esc(dur(ph.el - ph.goalMs))}`
       : `목표까지 <b>${esc(dur(ph.goalMs - ph.el))}</b>`;
-    const nx = STAGES[ph.i + 1];
-    if (nx && $('#nextLeft')) {
-      const s = STAGES[ph.i];
-      $('#nextLeft').textContent = `${dur(nx.h * H - ph.el)} 남음`;
-      $('#nextBar').style.width = Math.min(100, (ph.el - s.h * H) / ((nx.h - s.h) * H) * 100).toFixed(1) + '%';
-    }
   } else if (ph.p === 'eat') {
     frac = Math.min(1, ph.el / ph.win);
-    $('#rcTime').textContent = hms(ph.win - ph.el);
-    $('#rcSub').innerHTML = `다음 단식까지 남은 시간`;
+    $('#rcTime').innerHTML = digits(hms(ph.win - ph.el));
+    $('#rcSub').innerHTML = `다음 단식까지`;
   } else {
     const pl = plan();
-    $('#rcTime').textContent = `${pl.f}:00:00`;
-    $('#rcSub').innerHTML = `버튼을 누르면 <b>${pl.f}시간</b> 비움이 시작돼요`;
+    $('#rcTime').innerHTML = digits(`${pl.f}:00:00`);
+    $('#rcSub').innerHTML = `<b>${esc(planName(pl))}</b> 비움 준비 완료`;
   }
   $('#prog').setAttribute('stroke-dashoffset', (C * (1 - frac)).toFixed(2));
   $('#prog').style.opacity = frac > 0 ? 1 : 0;
   const [ox, oy] = polar(frac, R);
   const orb = $('#orb'); orb.setAttribute('cx', ox.toFixed(2)); orb.setAttribute('cy', oy.toFixed(2));
-  orb.style.opacity = ph.p === 'idle' ? .35 : 1;
+  orb.style.opacity = ph.p === 'idle' ? 0 : 1;
 }
 
 /* ── 몸의 변화 화면 ────────────────── */
@@ -1232,8 +1332,7 @@ function go(v){
 }
 function bindGo(root){ root.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go)); }
 function renderAll(){
-  const d = new Date();
-  $('#todayLabel').textContent = d.toLocaleDateString('ko-KR', { month:'long', day:'numeric', weekday:'long' });
+  applySky(true);
   renderToday();
   if (view === 'stages') renderStages();
   if (view === 'log') renderLog();
@@ -1241,12 +1340,12 @@ function renderAll(){
 
 document.querySelectorAll('#nav button').forEach(b => b.onclick = () => go(b.dataset.view));
 $('#btnSettings').onclick = settingsSheet;
-$('#planChip').onclick = planSheet;
 $('#mainBtn').onclick = () => { if (S.cur) endSheet(); else startFast(); };
 
 function tick(){
   const now = Date.now(), ph = phase(now);
   checkMilestones(ph);
+  applySky();
   if (sigOf(ph) !== sig) { renderToday(); if (view === 'stages') renderStages(); return; }
   if (view === 'today') tickToday(now, ph);
 }
