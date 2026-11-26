@@ -126,7 +126,8 @@ input,textarea{ font:inherit; color:var(--ink); }
 .rc-sub{ font-size:12.5px; color:var(--ink2); line-height:1.4; }
 .rc-sub b{ color:var(--ink); }
 
-.stage-pill{ display:flex; align-items:center; gap:8px; margin:4px auto 0; max-width:100%; padding:10px 14px 10px 12px; border-radius:999px; background:var(--glass2);
+#mainBtn{ margin-top:14px; }
+.stage-pill{ display:flex; align-items:center; gap:8px; margin:28px auto 0; max-width:100%; padding:10px 14px 10px 12px; border-radius:999px; background:var(--glass2);
   border:1px solid var(--line); font-size:14px; color:var(--ink); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
 .stage-pill .sp-dot{ width:22px; height:22px; flex:0 0 22px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--acc),var(--acc2)); color:#fff; font-size:12px; }
 .stage-pill b{ font-family:var(--serif); font-weight:700; font-size:15px; }
@@ -395,11 +396,12 @@ input,textarea{ font:inherit; color:var(--ink); }
           <div class="rc-sub" id="rcSub"></div>
         </div>
       </div>
-      <button class="stage-pill" id="stagePill"></button>
-      <div class="times" id="times"></div>
       <button class="primary" id="mainBtn"></button>
       <button class="alarm-btn" id="alarmBtn" hidden></button>
       <button class="link" id="subBtn"></button>
+      <div class="times" id="times"></div>
+      <!-- 몸의 변화: 첫 화면에선 안 보이게 맨 아래로 -->
+      <button class="stage-pill" id="stagePill"></button>
     </section>
 
     <!-- 음식 -->
@@ -442,7 +444,7 @@ input,textarea{ font:inherit; color:var(--ink); }
    기록은 이 기기의 브라우저(localStorage)에만 저장돼요.
    ───────────────────────────────────────────── */
 const KEY = 'bium_v1';
-const BUILD = '2026-11-26.8'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
+const BUILD = '2026-11-26.9'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
 const H = 36e5, MIN = 6e4, DAY = 864e5;
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
