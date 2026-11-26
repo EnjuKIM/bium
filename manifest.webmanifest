@@ -1,0 +1,27 @@
+{
+  "name": "비움 — 간헐적 단식",
+  "short_name": "비움",
+  "description": "비워낸 시간만큼 가벼워지는, 감성 간헐적 단식 기록",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#140f30",
+  "theme_color": "#1d1940",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "단식 바로 시작",
+      "short_name": "단식 시작",
+      "description": "지금 계획대로 단식을 바로 시작해요",
+      "url": "./?a=start",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
