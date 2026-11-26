@@ -29,6 +29,7 @@
   --serif:'Gowun Batang', 'Nanum Myeongjo', serif;
   --sans:'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --navh:64px;
+  --sat:env(safe-area-inset-top, 0px); --sab:env(safe-area-inset-bottom, 0px); /* 안드로이드 앱에서는 앱이 직접 채워 줘요 */
   color-scheme:dark;
 }
 html{ transition:--s1 2.4s ease, --s2 2.4s ease, --s3 2.4s ease, --acc 2.4s ease, --acc2 2.4s ease; background:#140f30; }
@@ -48,7 +49,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 .hills{ position:fixed; left:0; right:0; bottom:0; width:100%; height:26vh; z-index:-1; pointer-events:none; }
 
 /* ── 뼈대 ───────────────────────── */
-.app{ max-width:460px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 14px) 16px calc(var(--navh) + env(safe-area-inset-bottom) + 28px); }
+.app{ max-width:460px; margin:0 auto; padding:calc(var(--sat) + 14px) 16px calc(var(--navh) + var(--sab) + 28px); }
 .top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
 .brand{ font-family:var(--serif); font-weight:700; font-size:24px; letter-spacing:.06em; }
 .brand small{ font-family:var(--sans); font-weight:400; font-size:11px; letter-spacing:.02em; color:var(--ink3); margin-left:6px; }
@@ -197,7 +198,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 .w-chip button{ width:20px; height:20px; border-radius:50%; display:grid; place-items:center; color:var(--ink3); }
 
 /* ── 아래 메뉴 ───────────────────── */
-.nav{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) + 12px); width:min(calc(100% - 32px), 420px); height:var(--navh);
+.nav{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(var(--sab) + 12px); width:min(calc(100% - 32px), 420px); height:var(--navh);
   display:flex; padding:6px; gap:4px; border-radius:24px; background:rgba(16,12,38,.55); border:1px solid var(--line); -webkit-backdrop-filter:blur(20px) saturate(1.2); backdrop-filter:blur(20px) saturate(1.2); z-index:20; }
 .nav button{ flex:1 1 0; min-width:0; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:11px; color:var(--ink3); transition:background .25s, color .25s; }
 .nav button svg{ width:21px; height:21px; }
@@ -207,7 +208,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 /* ── 시트 ───────────────────────── */
 .sheet-wrap{ position:fixed; inset:0; z-index:50; background:rgba(8,6,20,.55); opacity:0; pointer-events:none; transition:opacity .3s ease; display:flex; align-items:flex-end; justify-content:center; }
 .sheet-wrap.open{ opacity:1; pointer-events:auto; }
-.sheet{ width:100%; max-width:480px; max-height:88vh; overflow:auto; padding:10px 18px calc(env(safe-area-inset-bottom) + 22px); border-radius:28px 28px 0 0;
+.sheet{ width:100%; max-width:480px; max-height:88vh; overflow:auto; padding:10px 18px calc(var(--sab) + 22px); border-radius:28px 28px 0 0;
   background:linear-gradient(180deg, color-mix(in srgb, var(--s2) 70%, #120d2c), #120d2c 70%); border:1px solid var(--line); border-bottom:0; transform:translateY(40px); transition:transform .35s cubic-bezier(.2,.8,.2,1); }
 .sheet-wrap.open .sheet{ transform:none; }
 .grab{ width:40px; height:4px; border-radius:4px; background:rgba(255,255,255,.22); margin:2px auto 14px; }
@@ -249,7 +250,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 .sw::after{ content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:transform .25s; }
 .sw.on{ background:linear-gradient(135deg,var(--acc),var(--acc2)); }
 .sw.on::after{ transform:translateX(18px); }
-.toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + var(--navh) + 26px); transform:translate(-50%, 12px); max-width:calc(100% - 40px); padding:11px 18px; border-radius:999px;
+.toast{ position:fixed; left:50%; bottom:calc(var(--sab) + var(--navh) + 26px); transform:translate(-50%, 12px); max-width:calc(100% - 40px); padding:11px 18px; border-radius:999px;
   background:rgba(255,255,255,.94); color:#1b1434; font-size:13.5px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .3s, transform .3s; z-index:60; text-align:center; word-break:keep-all; }
 .toast.show{ opacity:1; transform:translate(-50%, 0); }
 
@@ -433,7 +434,22 @@ function normalize(d){
 }
 function load(){ try { const t = localStorage.getItem(KEY); return t ? normalize(JSON.parse(t)) : fresh(); } catch(e){ return fresh(); } }
 let S = load();
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast('저장 공간에 기록하지 못했어요'); } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast('저장 공간에 기록하지 못했어요'); } pushNative(); }
+
+/* 안드로이드 앱(비움 APK) 안에서 열렸을 때: 위젯·알람이 쓸 상태를 앱에 넘겨요 */
+const APP = (() => { try { return window.BiumAndroid && window.BiumAndroid.isApp() ? window.BiumAndroid : null; } catch(e){ return null; } })();
+if (APP) document.documentElement.classList.add('in-app');
+function pushNative(){
+  if (!APP) return;
+  try {
+    const pl = plan();
+    APP.sync(JSON.stringify({
+      v:1, cur: S.cur ? { start:S.cur.start, goal:S.cur.goal } : null, lastEnd:S.lastEnd || 0,
+      eatH: pl.e, planF: pl.f, planName: planName(pl), notify: !!S.notify,
+      stages: STAGES.map(s => ({ h:s.h, name:s.name, short:s.short, line: s.body.split('. ')[0].replace(/\.?$/, '.') }))
+    }));
+  } catch(e){}
+}
 
 function plan(){
   if (S.planId === 'custom') { const f = S.customF; return { id:'custom', f, e: f < 24 ? 24 - f : 0, sub:'나만의 단식' }; }
@@ -541,11 +557,19 @@ function renderToday(){
     const btn = $('#mainBtn'); btn.textContent = '단식 마치기'; btn.classList.toggle('soft', !ph.ach);
     $('#subBtn').textContent = '목표 시간 바꾸기'; $('#subBtn').onclick = planSheet;
     const endAt = S.cur.start + goal * H, ab = $('#alarmBtn');
-    ab.hidden = ph.ach;
-    const added = S.cur.cal === endAt;
-    ab.className = 'alarm-btn ' + (added ? 'done' : 'todo');
-    ab.innerHTML = added ? `${IC.check}<span>캘린더 알람 넣음 · ${esc(clock(endAt))}</span>` : `${IC.bell}<span>끝나는 시각에 알람 맞추기</span>`;
-    ab.onclick = alarmSheet;
+    if (APP) {
+      // 앱에서는 폰이 직접 정각에 알람을 울려요 → 알림만 켜져 있으면 됨
+      ab.hidden = ph.ach;
+      ab.className = 'alarm-btn ' + (S.notify ? 'done' : 'todo');
+      ab.innerHTML = S.notify ? `${IC.check}<span>${esc(clock(endAt))}에 알람이 울려요</span>` : `${IC.bell}<span>목표 시각에 알람 받기</span>`;
+      ab.onclick = S.notify ? () => toast('목표 시각과 단계마다 폰 알림이 와요') : () => enableAppNotify();
+    } else {
+      ab.hidden = ph.ach;
+      const added = S.cur.cal === endAt;
+      ab.className = 'alarm-btn ' + (added ? 'done' : 'todo');
+      ab.innerHTML = added ? `${IC.check}<span>캘린더 알람 넣음 · ${esc(clock(endAt))}</span>` : `${IC.bell}<span>끝나는 시각에 알람 맞추기</span>`;
+      ab.onclick = alarmSheet;
+    }
     renderStageCard(ph);
     $('#poem').textContent = ph.ach ? '목표에 닿았어요. 오늘의 당신, 참 단단해요.' : STAGES[ph.i].poem;
   } else if (ph.p === 'eat') {
@@ -853,7 +877,8 @@ function startFast(at){
   S.cur = { start, goal: plan().f }; resetSeen();
   save(); renderAll();
   toast(at ? `${when(start)}부터 단식 중이에요` : '비움을 시작했어요. 천천히, 가볍게.');
-  if (S.notify) ensurePermission();
+  if (APP && !S.notify && !S.askedNotify) { S.askedNotify = true; save(); setTimeout(() => enableAppNotify(), 1200); }
+  else if (S.notify) ensurePermission();
 }
 
 function timeField(label, ts, id){
@@ -968,15 +993,24 @@ function settingsSheet(){
   openSheet(`
     <h3 class="sh-t">설정</h3>
     <button class="set-row" id="stPlan"><div><div class="k">단식 계획</div><div class="d">${pl.f}시간 비움${pl.e ? ` · ${pl.e}시간 식사` : ''}</div></div><div class="v">${esc(planName(pl))} ›</div></button>
-    <div class="set-row"><div><div class="k">단계 알림</div><div class="d">새 단계에 들어설 때와 목표에 닿았을 때 알려 드려요. 앱을 완전히 닫으면 알림이 늦거나 오지 않을 수 있어요.${perm === 'denied' ? '<br><span class="danger">브라우저에서 알림이 차단되어 있어요.</span>' : perm === 'unsupported' ? '<br>이 브라우저는 알림을 지원하지 않아요.' : ''}</div></div><button class="sw${S.notify ? ' on' : ''}" id="stNotify" aria-label="알림 켜기"></button></div>
+    <div class="set-row"><div><div class="k">${APP ? '목표·단계 알람' : '단계 알림'}</div><div class="d">${APP
+      ? '목표 시각과 새 단계에 들어설 때 폰 알림으로 알려 드려요. 앱을 닫아 두어도 울려요. 소리는 폰 설정 → 알림 → 비움에서 바꿀 수 있어요.'
+      : `새 단계에 들어설 때와 목표에 닿았을 때 알려 드려요. 앱을 완전히 닫으면 알림이 늦거나 오지 않을 수 있어요.${perm === 'denied' ? '<br><span class="danger">브라우저에서 알림이 차단되어 있어요.</span>' : perm === 'unsupported' ? '<br>이 브라우저는 알림을 지원하지 않아요.' : ''}`}</div></div><button class="sw${S.notify ? ' on' : ''}" id="stNotify" aria-label="알림 켜기"></button></div>
     <div class="set-row"><div><div class="k">차임 소리</div><div class="d">앱을 열어 둔 채 목표에 닿거나 새 단계에 들어서면 은은한 종소리가 울려요. 무음 모드에서는 울리지 않을 수 있어요.</div></div><button class="sw${S.chime ? ' on' : ''}" id="stChime" aria-label="차임 소리 켜기"></button></div>
     <button class="set-row" id="stCopy"><div><div class="k">백업 복사하기</div><div class="d">기록 전체를 글자로 복사해요. 메모장이나 카톡 나에게 보내기에 붙여 두세요.</div></div><div class="v">›</div></button>
-    <button class="set-row" id="stFile"><div><div class="k">백업 파일로 저장</div><div class="d">bium-backup.json 파일을 내려받아요.</div></div><div class="v">›</div></button>
+    <button class="set-row" id="stFile"><div><div class="k">백업 파일로 저장</div><div class="d">bium-backup.json 파일을 ${APP ? '폰의 다운로드 폴더에 저장해요' : '내려받아요'}.</div></div><div class="v">›</div></button>
     <button class="set-row" id="stRestore"><div><div class="k">백업 붙여넣어 복원</div><div class="d">지금 기록에 합쳐져요. 지워지는 기록은 없어요.</div></div><div class="v">›</div></button>
-    <div class="set-row"><div><div class="k">비움 v1.0</div><div class="d">기록은 이 폰의 브라우저에만 저장돼요. 브라우저 데이터를 지우면 기록도 사라지니, 가끔 백업해 주세요.</div></div></div>`, sh => {
+    <div class="set-row"><div><div class="k">비움 v1.1${APP ? ' · 안드로이드 앱' : ''}</div><div class="d">${APP
+      ? '기록은 이 폰의 비움 앱 안에만 저장돼요. 앱을 지우면 기록도 사라지니, 가끔 백업해 주세요.'
+      : '기록은 이 폰의 브라우저에만 저장돼요. 브라우저 데이터를 지우면 기록도 사라지니, 가끔 백업해 주세요.'}</div></div></div>`, sh => {
     $('#stPlan').onclick = () => { closeSheet(); setTimeout(planSheet, 260); };
     $('#stNotify').onclick = async e => {
       const btn = e.currentTarget;
+      if (APP) {
+        if (!S.notify) enableAppNotify(ok => btn.classList.toggle('on', ok));
+        else { S.notify = false; save(); btn.classList.remove('on'); renderToday(); toast('알람을 껐어요'); }
+        return;
+      }
       if (!S.notify) {
         const ok = await ensurePermission();
         if (!ok) { toast('알림 권한이 필요해요'); return; }
@@ -990,10 +1024,17 @@ function settingsSheet(){
     };
     $('#stCopy').onclick = async () => {
       const txt = backupText();
+      if (APP) { let ok = false; try { ok = APP.copy(txt); } catch(e){} if (ok) toast('백업을 복사했어요'); else showText(txt); return; }
       try { await navigator.clipboard.writeText(txt); toast('백업을 복사했어요'); }
       catch(e){ showText(txt); }
     };
     $('#stFile').onclick = () => {
+      if (APP) {
+        let ok = false; const name = `bium-backup-${dkey(Date.now())}.json`;
+        try { ok = APP.saveFile(name, 'application/json', backupText()); } catch(e){}
+        if (ok) toast(`다운로드 폴더에 ${name}로 저장했어요`); else showText(backupText());
+        return;
+      }
       try {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([backupText()], { type:'application/json' }));
@@ -1005,6 +1046,23 @@ function settingsSheet(){
   });
 }
 function backupText(){ return JSON.stringify({ app:'bium', v:1, at: new Date().toISOString(), data: S }); }
+
+/* 앱: 알림 권한을 받고 알람 켜기 */
+let notifyCb = null;
+function enableAppNotify(cb){
+  if (!APP) return;
+  notifyCb = cb || null;
+  try { APP.requestNotify(); } catch(e){ toast('알림을 켜지 못했어요'); }
+}
+window.biumNotifyResult = ok => {
+  S.notify = !!ok; save(); renderToday();
+  if (ok) toast('목표 시각과 단계마다 알람이 울려요');
+  else {
+    toast('폰 설정에서 비움 알림을 허용해 주세요');
+    try { setTimeout(() => APP.openNotifySettings(), 900); } catch(e){}
+  }
+  if (notifyCb) { notifyCb(!!ok); notifyCb = null; }
+};
 function showText(txt){
   openSheet(`<h3 class="sh-t">백업 글자</h3><p class="sh-s">아래 글자를 길게 눌러 전체 선택 후 복사해 주세요.</p>
     <label class="field"><textarea id="bkT" style="min-height:180px;font-size:12px">${esc(txt)}</textarea></label>`, () => { const t = $('#bkT'); t.focus(); t.select(); });
@@ -1130,6 +1188,7 @@ async function ensurePermission(){
 function notify(title, body, kind){
   toast(title);
   chime(kind);
+  if (APP) { try { APP.vibrate(kind || 'stage'); } catch(e){} return; } // 앱을 닫았을 때 알림은 안드로이드가 직접 보내요
   try { navigator.vibrate && navigator.vibrate(kind === 'goal' ? [200, 100, 200, 100, 400] : [90, 60, 90]); } catch(e){}
   if (!S.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
   const opt = { body, icon:'icon-192.png', badge:'icon-192.png', tag:'bium-stage' };
@@ -1198,12 +1257,25 @@ makeStars();
 renderAll();
 setInterval(tick, 1000);
 
-// 홈 화면 바로가기: ?a=start
+// 홈 화면 바로가기·위젯 버튼: ?a=start / ?a=end
+function biumAction(a){
+  if (a === 'start') { go('today'); if (!S.cur) startFast(); }
+  if (a === 'end') { go('today'); if (S.cur) endSheet(); }
+}
+window.biumAction = biumAction;
+// 안드로이드 뒤로 가기: 열린 시트 닫기 → 오늘 화면으로 → (그다음엔 앱이 알아서)
+window.biumBack = () => {
+  if ($('#sheetWrap').classList.contains('open')) { closeSheet(); return true; }
+  if (view !== 'today') { go('today'); return true; }
+  return false;
+};
+window.biumRefresh = () => { S = load(); renderAll(); pushNative(); };
 (function(){
   const a = new URLSearchParams(location.search).get('a');
-  if (a === 'start' && !S.cur) startFast();
   if (a) history.replaceState(null, '', location.pathname);
+  if (a === 'start' || a === 'end') biumAction(a);
 })();
+pushNative();
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});

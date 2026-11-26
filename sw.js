@@ -25,7 +25,13 @@ self.addEventListener('fetch', e => {
   if (req.mode === 'navigate') {
     e.respondWith(
       fetch(req, { cache: 'no-cache' })
-        .then(res => { const copy = res.clone(); caches.open(SHELL).then(c => c.put('./index.html', copy)); return res; })
+        .then(res => {
+          // 앱 화면(HTML)일 때만 오프라인용으로 저장 (다른 파일을 열어도 앱 화면이 덮이지 않게)
+          if (res.ok && (res.headers.get('content-type') || '').includes('text/html')) {
+            const copy = res.clone(); caches.open(SHELL).then(c => c.put('./index.html', copy));
+          }
+          return res;
+        })
         .catch(() => caches.match('./index.html'))
     );
     return;
