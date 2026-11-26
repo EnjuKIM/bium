@@ -100,6 +100,10 @@ input,textarea{ font:inherit; color:var(--ink); }
   background:linear-gradient(135deg, var(--acc), var(--acc2)); box-shadow:0 14px 34px -14px var(--acc), inset 0 1px 0 rgba(255,255,255,.5); transition:transform .15s ease; }
 .primary:active{ transform:scale(.98); }
 .primary.soft{ background:rgba(255,255,255,.1); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
+.alarm-btn{ display:flex; align-items:center; justify-content:center; gap:8px; margin:12px auto 0; padding:10px 16px; border-radius:999px; font-size:13.5px; color:var(--ink); background:var(--glass2); border:1px solid var(--line); max-width:100%; }
+.alarm-btn svg{ width:16px; height:16px; flex:0 0 16px; color:var(--acc); }
+.alarm-btn.todo{ border-color:color-mix(in srgb, var(--acc) 55%, transparent); box-shadow:0 0 18px -6px var(--acc); }
+.alarm-btn.done{ color:var(--ink2); }
 .link{ display:block; margin:12px auto 0; font-size:13px; color:var(--ink3); text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--ink4); padding:6px 10px; }
 
 .stage-card{ margin-top:22px; position:relative; overflow:hidden; }
@@ -308,6 +312,7 @@ input,textarea{ font:inherit; color:var(--ink); }
       </div>
       <div class="times" id="times"></div>
       <button class="primary" id="mainBtn"></button>
+      <button class="alarm-btn" id="alarmBtn" hidden></button>
       <button class="link" id="subBtn"></button>
       <div class="card stage-card" id="stageCard"></div>
       <p class="poem" id="poem"></p>
@@ -416,7 +421,7 @@ const MOODS = [
 const moodOf = id => MOODS.find(m => m[0] === id);
 
 /* ── 저장 ─────────────────────────── */
-function fresh(){ return { v:1, planId:'16:8', customF:24, cur:null, lastEnd:null, fasts:[], weights:[], notify:false, ack:false }; }
+function fresh(){ return { v:1, planId:'16:8', customF:24, cur:null, lastEnd:null, fasts:[], weights:[], notify:false, chime:true, ack:false }; }
 function normalize(d){
   const s = Object.assign(fresh(), d && typeof d === 'object' ? d : {});
   s.fasts = Array.isArray(s.fasts) ? s.fasts.filter(f => f && f.id && +f.start && +f.end && f.end > f.start) : [];
@@ -495,7 +500,9 @@ const IC = {
   down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
   right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
   left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
-  x:'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+  x:'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
 };
 
 /* ── 오늘 화면 ─────────────────────── */
@@ -533,9 +540,16 @@ function renderToday(){
     $('#editStart').onclick = editStartSheet;
     const btn = $('#mainBtn'); btn.textContent = '단식 마치기'; btn.classList.toggle('soft', !ph.ach);
     $('#subBtn').textContent = '목표 시간 바꾸기'; $('#subBtn').onclick = planSheet;
+    const endAt = S.cur.start + goal * H, ab = $('#alarmBtn');
+    ab.hidden = ph.ach;
+    const added = S.cur.cal === endAt;
+    ab.className = 'alarm-btn ' + (added ? 'done' : 'todo');
+    ab.innerHTML = added ? `${IC.check}<span>캘린더 알람 넣음 · ${esc(clock(endAt))}</span>` : `${IC.bell}<span>끝나는 시각에 알람 맞추기</span>`;
+    ab.onclick = alarmSheet;
     renderStageCard(ph);
     $('#poem').textContent = ph.ach ? '목표에 닿았어요. 오늘의 당신, 참 단단해요.' : STAGES[ph.i].poem;
   } else if (ph.p === 'eat') {
+    $('#alarmBtn').hidden = true;
     applyTheme(THEME_EAT);
     $('#rcLabel').textContent = '먹는 시간';
     $('#rcStage').hidden = true;
@@ -553,6 +567,7 @@ function renderToday(){
       ${last ? `<div class="tip">${IC.leaf}<div>지난 단식 <b>${esc(dur(last.end - last.start))}</b> · ${esc(STAGES[stageIdx((last.end-last.start)/H)].name)}까지 닿았어요.</div></div>` : ''}`;
     $('#poem').textContent = '채우는 시간도, 비우는 시간만큼 소중해요.';
   } else {
+    $('#alarmBtn').hidden = true;
     applyTheme(THEME_IDLE);
     $('#rcLabel').textContent = '준비됐어요';
     $('#rcStage').hidden = true;
@@ -954,6 +969,7 @@ function settingsSheet(){
     <h3 class="sh-t">설정</h3>
     <button class="set-row" id="stPlan"><div><div class="k">단식 계획</div><div class="d">${pl.f}시간 비움${pl.e ? ` · ${pl.e}시간 식사` : ''}</div></div><div class="v">${esc(planName(pl))} ›</div></button>
     <div class="set-row"><div><div class="k">단계 알림</div><div class="d">새 단계에 들어설 때와 목표에 닿았을 때 알려 드려요. 앱을 완전히 닫으면 알림이 늦거나 오지 않을 수 있어요.${perm === 'denied' ? '<br><span class="danger">브라우저에서 알림이 차단되어 있어요.</span>' : perm === 'unsupported' ? '<br>이 브라우저는 알림을 지원하지 않아요.' : ''}</div></div><button class="sw${S.notify ? ' on' : ''}" id="stNotify" aria-label="알림 켜기"></button></div>
+    <div class="set-row"><div><div class="k">차임 소리</div><div class="d">앱을 열어 둔 채 목표에 닿거나 새 단계에 들어서면 은은한 종소리가 울려요. 무음 모드에서는 울리지 않을 수 있어요.</div></div><button class="sw${S.chime ? ' on' : ''}" id="stChime" aria-label="차임 소리 켜기"></button></div>
     <button class="set-row" id="stCopy"><div><div class="k">백업 복사하기</div><div class="d">기록 전체를 글자로 복사해요. 메모장이나 카톡 나에게 보내기에 붙여 두세요.</div></div><div class="v">›</div></button>
     <button class="set-row" id="stFile"><div><div class="k">백업 파일로 저장</div><div class="d">bium-backup.json 파일을 내려받아요.</div></div><div class="v">›</div></button>
     <button class="set-row" id="stRestore"><div><div class="k">백업 붙여넣어 복원</div><div class="d">지금 기록에 합쳐져요. 지워지는 기록은 없어요.</div></div><div class="v">›</div></button>
@@ -967,6 +983,10 @@ function settingsSheet(){
         S.notify = true; btn.classList.add('on'); toast('단계 알림을 켰어요');
       } else { S.notify = false; btn.classList.remove('on'); toast('알림을 껐어요'); }
       save();
+    };
+    $('#stChime').onclick = e => {
+      S.chime = !S.chime; e.currentTarget.classList.toggle('on', S.chime); save();
+      if (S.chime) { chime('goal', true); toast('차임 소리를 켰어요'); } else toast('차임 소리를 껐어요');
     };
     $('#stCopy').onclick = async () => {
       const txt = backupText();
@@ -1009,6 +1029,97 @@ function restoreSheet(){
   });
 }
 
+/* ── 캘린더 알람 ─────────────────────── */
+const icsTime = ts => new Date(ts).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+// 캘린더 파일 규칙: 한 줄이 75바이트를 넘으면 접어서 이어 써요 (한글이 중간에 잘리지 않게)
+function icsFold(line){
+  const enc = new TextEncoder(); let out = '', cur = '', n = 0;
+  for (const ch of line) {
+    const b = enc.encode(ch).length;
+    if (n + b > (out ? 74 : 75)) { out += (out ? '\r\n ' : '') + cur; cur = ''; n = 0; }
+    cur += ch; n += b;
+  }
+  return out ? out + '\r\n ' + cur : cur;
+}
+function alarmSheet(){
+  if (!S.cur) return;
+  const goal = S.cur.goal, end = S.cur.start + goal * H;
+  if (end <= Date.now()) { toast('이미 목표 시간이 지났어요'); return; }
+  const title = `비움 · ${goal}시간 단식 목표 달성`;
+  const detail = `${goal}시간 단식 목표에 닿았어요. 수고했어요! 비움 앱에서 단식을 마쳐 주세요. https://enjukim.github.io/bium/`;
+  openSheet(`
+    <h3 class="sh-t">끝나는 시각에 알람 맞추기</h3>
+    <p class="sh-s">폰 캘린더에 일정으로 넣어 두면, 비움을 닫아 두어도 캘린더가 소리와 진동으로 알려줘요.</p>
+    <div class="big-dur"><div class="v" style="font-size:34px">${esc(when(end))}</div><div class="s">${goal}시간 단식 목표</div></div>
+    <button class="primary" id="alIcs" style="margin-top:18px">폰 캘린더에 넣기 (삼성 캘린더 등)</button>
+    <p class="sh-s" style="font-size:12.5px;margin:10px 4px 0">파일(.ics)이 내려받아지면 알림창이나 ‘다운로드’에서 눌러 <b>캘린더로 열기 → 저장</b>해 주세요. 정각에 울리는 알림이 함께 들어가요.</p>
+    <button class="primary soft" id="alG" style="margin-top:16px">구글 캘린더에 넣기</button>
+    <p class="sh-s" style="font-size:12.5px;margin:10px 4px 0">구글 캘린더는 내 캘린더의 기본 알림 설정(보통 10~30분 전)에 맞춰 울려요.</p>
+    <div class="tip" style="margin-top:14px">${IC.leaf}<div>목표 시간이나 시작 시각을 바꾸면, 알람도 다시 넣어 주세요.</div></div>`, () => {
+    const mark = () => { if (S.cur) { S.cur.cal = end; save(); } closeSheet(); renderAll(); };
+    $('#alIcs').onclick = () => {
+      const ics = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//bium//fasting//KO', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        `UID:bium-${S.cur.start}-${goal}@enjukim.github.io`,
+        `DTSTAMP:${icsTime(Date.now())}`,
+        `DTSTART:${icsTime(end)}`,
+        `DTEND:${icsTime(end + 15 * MIN)}`,
+        `SUMMARY:${title}`,
+        `DESCRIPTION:${detail}`,
+        'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${title}`, 'TRIGGER:PT0S', 'END:VALARM',
+        'END:VEVENT', 'END:VCALENDAR', ''
+      ].map(icsFold).join('\r\n');
+      try {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([ics], { type:'text/calendar;charset=utf-8' }));
+        a.download = `bium-${dkey(end)}-${pad(new Date(end).getHours())}${pad(new Date(end).getMinutes())}.ics`;
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+        mark(); toast('캘린더 파일을 내려받았어요. 열어서 저장해 주세요');
+      } catch(e){ toast('파일을 만들지 못했어요. 구글 캘린더로 넣어 주세요'); }
+    };
+    $('#alG').onclick = () => {
+      const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+        + '&text=' + encodeURIComponent(title)
+        + '&dates=' + icsTime(end) + '/' + icsTime(end + 15 * MIN)
+        + '&details=' + encodeURIComponent(detail);
+      window.open(url, '_blank', 'noopener');
+      mark();
+    };
+  });
+}
+
+/* ── 차임 소리 (앱이 열려 있을 때) ───── */
+let actx = null;
+function audio(){
+  try {
+    if (!actx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; actx = new AC(); }
+    if (actx.state === 'suspended') actx.resume().catch(() => {});
+    return actx;
+  } catch(e){ return null; }
+}
+// 폰은 화면을 한 번 만진 뒤에야 소리를 낼 수 있어서, 터치할 때마다 소리 장치를 깨워 둬요
+document.addEventListener('pointerdown', () => { if (S.chime) audio(); }, { passive:true });
+function bell(ctx, t, f, vol, len){
+  [[1, 1], [2.01, .3], [3.02, .1], [4.2, .05]].forEach(([m, a]) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = f * m;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol * a, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len / Math.pow(m, 0.5));
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t + len + 0.1);
+  });
+}
+function chime(kind, force){
+  if (!S.chime && !force) return;
+  const ctx = audio(); if (!ctx) return;
+  const t = ctx.currentTime + 0.05;
+  if (kind === 'goal') [659.25, 830.61, 987.77, 1318.51].forEach((f, k) => bell(ctx, t + k * 0.32, f, .2, 3));
+  else { bell(ctx, t, 880, .14, 2.2); bell(ctx, t + 0.34, 1174.66, .1, 2.4); }
+}
+
 /* ── 알림 ───────────────────────────── */
 async function ensurePermission(){
   if (!('Notification' in window)) return false;
@@ -1016,9 +1127,10 @@ async function ensurePermission(){
   if (Notification.permission === 'denied') return false;
   try { return (await Notification.requestPermission()) === 'granted'; } catch(e){ return false; }
 }
-function notify(title, body){
+function notify(title, body, kind){
   toast(title);
-  try { navigator.vibrate && navigator.vibrate([90, 60, 90]); } catch(e){}
+  chime(kind);
+  try { navigator.vibrate && navigator.vibrate(kind === 'goal' ? [200, 100, 200, 100, 400] : [90, 60, 90]); } catch(e){}
   if (!S.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
   const opt = { body, icon:'icon-192.png', badge:'icon-192.png', tag:'bium-stage' };
   const fallback = () => { try { new Notification(title, opt); } catch(e){} };
@@ -1039,9 +1151,9 @@ function checkMilestones(ph){
   if (!cur.seen.includes(ph.i)) {
     cur.seen.push(ph.i); changed = true;
     const s = STAGES[ph.i];
-    if (!(cur.goalSeen === false && ph.ach)) notify(`${s.h}시간 · ${s.name}`, s.body.split('. ')[0] + '.');
+    if (!(cur.goalSeen === false && ph.ach)) notify(`${s.h}시간 · ${s.name}`, s.body.split('. ')[0] + '.', 'stage');
   }
-  if (!cur.goalSeen && ph.ach) { cur.goalSeen = true; changed = true; notify(`목표 ${cur.goal}시간 달성 ✦`, '정말 잘했어요. 이제 천천히 마쳐도 좋아요.'); }
+  if (!cur.goalSeen && ph.ach) { cur.goalSeen = true; changed = true; notify(`목표 ${cur.goal}시간 달성 ✦`, '정말 잘했어요. 이제 천천히 마쳐도 좋아요.', 'goal'); }
   if (changed) save();
 }
 
