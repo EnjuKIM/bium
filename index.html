@@ -442,6 +442,7 @@ input,textarea{ font:inherit; color:var(--ink); }
    기록은 이 기기의 브라우저(localStorage)에만 저장돼요.
    ───────────────────────────────────────────── */
 const KEY = 'bium_v1';
+const BUILD = '2026-11-26.8'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
 const H = 36e5, MIN = 6e4, DAY = 864e5;
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1540,7 +1541,25 @@ function tick(){
   if (sigOf(ph) !== sig) { renderToday(); if (view === 'stages') renderStages(); return; }
   if (view === 'today') tickToday(now, ph);
 }
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { S = load(); renderAll(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { S = load(); renderAll(); checkUpdate(); } });
+
+/* 새 판 확인: 앱을 다시 볼 때 서버에 새 판이 있으면 화면을 새로 불러와요
+   (앱이 메모리에 남아 있으면 예전 화면이 계속 보이는 문제 방지) */
+let lastCheck = 0;
+async function checkUpdate(){
+  if (!/^https?:$/.test(location.protocol) || Date.now() - lastCheck < 60 * 1000) return;
+  lastCheck = Date.now();
+  try {
+    const res = await fetch(location.pathname + '?check=' + Date.now(), { cache:'no-store' });
+    const m = (await res.text()).match(/const BUILD = '([^']+)'/);
+    if (!m || m[1] === BUILD) return;
+    if ($('#sheetWrap').classList.contains('open')) { lastCheck = 0; return; } // 무언가 적는 중이면 다음에
+    try { sessionStorage.setItem('bium_updated', m[1]); } catch(e){}
+    location.reload();
+  } catch(e){}
+}
+setTimeout(checkUpdate, 3000);
+try { if (sessionStorage.getItem('bium_updated')) { sessionStorage.removeItem('bium_updated'); setTimeout(() => toast('새 버전으로 바뀌었어요 ✦'), 600); } } catch(e){}
 window.addEventListener('storage', e => { if (e.key === KEY) { S = load(); renderAll(); } });
 
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -1560,7 +1579,7 @@ window.biumBack = () => {
   if (view !== 'today') { go('today'); return true; }
   return false;
 };
-window.biumRefresh = () => { S = load(); renderAll(); pushNative(); };
+window.biumRefresh = () => { S = load(); renderAll(); pushNative(); checkUpdate(); };
 (function(){
   const a = new URLSearchParams(location.search).get('a');
   if (a) history.replaceState(null, '', location.pathname);

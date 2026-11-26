@@ -1,6 +1,6 @@
 // 비움 — 오프라인에서도 앱 화면이 열리도록 하는 서비스 워커
 // 기록 데이터는 여기서 다루지 않습니다 (기록은 브라우저 localStorage에 따로 저장됨).
-const SHELL = 'bium-shell-v1';
+const SHELL = 'bium-shell-v2';
 const FONTS = 'bium-fonts-v1';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
@@ -21,6 +21,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.pathname.endsWith('.apk')) return; // 앱 설치 파일은 저장하지 않고 그대로 내려받기
+  if (url.searchParams.has('check')) return; // 새 판 확인은 항상 서버에 직접 물어봐요
 
   // 앱 화면: 인터넷이 되면 항상 최신판, 안 되면 저장해 둔 판
   if (req.mode === 'navigate') {
