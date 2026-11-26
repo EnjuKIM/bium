@@ -87,7 +87,12 @@ input,textarea{ font:inherit; color:var(--ink); }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
 
 /* ── 오늘 ───────────────────────── */
-.bubble{ position:relative; margin:16px auto 0; width:fit-content; max-width:86%; padding:9px 16px; border-radius:18px; background:#fff; color:#4a3f78;
+.streak{ display:flex; justify-content:center; margin-top:12px; }
+.streak-pill{ padding:7px 16px; border-radius:999px; font-family:var(--serif); font-size:14.5px; color:#fff; letter-spacing:.02em;
+  background:linear-gradient(135deg,#ffb36b,#ff7d95); box-shadow:0 8px 18px -10px #ff7d95, inset 0 1px 0 rgba(255,255,255,.4); animation:pop .5s cubic-bezier(.3,1.6,.5,1) both; }
+.streak-pill.mile{ background:linear-gradient(135deg,#ffd36b,#ff8fb1,#b892ff); box-shadow:0 0 0 3px rgba(255,255,255,.35), 0 10px 22px -10px #ff8fb1; }
+.streak-pill.soft{ background:var(--glass2); color:var(--ink2); border:1px solid var(--line); box-shadow:none; font-size:13.5px; }
+.bubble{ position:relative; margin:12px auto 0; width:fit-content; max-width:86%; padding:9px 16px; border-radius:18px; background:#fff; color:#4a3f78;
   font-size:13.5px; line-height:1.5; text-align:center; word-break:keep-all; box-shadow:0 8px 20px -12px rgba(30,20,70,.45); animation:pop .5s cubic-bezier(.3,1.6,.5,1) both; }
 .bubble::after{ content:''; position:absolute; left:50%; bottom:-6px; width:13px; height:13px; background:#fff; transform:translateX(-50%) rotate(45deg); border-radius:0 0 3px 0; }
 @keyframes pop{ from{ transform:scale(.85); opacity:0; } to{ transform:none; opacity:1; } }
@@ -369,6 +374,7 @@ input,textarea{ font:inherit; color:var(--ink); }
   <main>
     <!-- 오늘 -->
     <section class="view" id="v-today">
+      <div class="streak" id="streak"></div>
       <div class="bubble" id="bubble"></div>
       <div class="ring-box" id="ringBox">
         <svg class="ring" viewBox="0 0 300 300" aria-hidden="true">
@@ -531,6 +537,7 @@ function pushNative(){
     APP.sync(JSON.stringify({
       v:1, cur: S.cur ? { start:S.cur.start, goal:S.cur.goal } : null, lastEnd:S.lastEnd || 0,
       eatH: pl.e, planF: pl.f, planName: planName(pl), notify: !!S.notify,
+      streak: (() => { const si = streakInfo(); return { n: si.n, count: si.count, live: si.live, exp: si.exp }; })(),
       stages: STAGES.map(s => ({ h:s.h, name:s.name, short:s.short, line: s.body.split('. ')[0].replace(/\.?$/, '.') }))
     }));
   } catch(e){}
@@ -591,7 +598,9 @@ let skyKey = '';
 function applySky(force){
   const t = skyNow(), day = dkey(Date.now());
   if (!force && t.k + day === skyKey) return;
+  const dayChanged = skyKey && !skyKey.endsWith(day);
   skyKey = t.k + day;
+  if (dayChanged) { renderStreak(); pushNative(); } // 자정이 지나면 연속 기록도 다시 계산
   const r = document.documentElement, st = r.style;
   st.setProperty('--s1', t.sky[0]); st.setProperty('--s2', t.sky[1]); st.setProperty('--s3', t.sky[2]);
   r.dataset.tone = t.tone;
@@ -673,6 +682,7 @@ const digits = t => esc(t).replace(/\d/g, d => `<span class="dg">${d}</span>`).r
 function renderToday(){
   const now = Date.now(), ph = phase(now), pl = plan();
   applySky();
+  renderStreak();
   const marks = $('#marks'); marks.innerHTML = '';
   $('#ringBox').classList.toggle('ach', ph.p === 'fast' && ph.ach);
   $('#prog').setAttribute('stroke-dasharray', C.toFixed(2));
@@ -945,11 +955,33 @@ function renderStages(){
 let calY, calM, selDay = null, showAll = false;
 const latestEnd = () => S.fasts.length ? S.fasts.reduce((a, x) => Math.max(a, x.end), 0) : null;
 function achieved(f){ return f.end - f.start >= (f.goal || 0) * H - 1000; }
-function streak(){
+function streak(){ return streakInfo().n; }
+/* 연속 기록: 목표를 달성한 날(단식을 마친 날 기준)이 며칠째 이어지는지
+   n: 이어진 날 수 / count: 지금 단식 중이면 오늘까지 친 날째 / live: 오늘 도전 중 / exp: 이 기록이 끊기는 시각 */
+function streakInfo(){
   const set = new Set(S.fasts.filter(achieved).map(f => dkey(f.end)));
-  let t = Date.now(); if (!set.has(dkey(t))) t -= DAY;
-  let n = 0; while (set.has(dkey(t))) { n++; t -= DAY; }
-  return n;
+  const now = Date.now(), today = dkey(now);
+  let t = now; if (!set.has(today)) t -= DAY;
+  let n = 0, last = 0;
+  while (set.has(dkey(t))) { if (!last) last = t; n++; t -= DAY; }
+  const live = !!S.cur && !set.has(today);
+  let exp = 0;
+  if (last) { const d = new Date(last); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 2); exp = d.getTime(); }
+  return { n, count: live ? n + 1 : n, live, exp };
+}
+const MILESTONES = { 3:'3일 연속! 몸이 리듬을 익히고 있어요', 7:'일주일 연속! 정말 대단해요', 14:'2주 연속! 이제 습관이 됐어요',
+  21:'3주 연속! 21일의 기적이에요', 30:'한 달 연속! 스스로를 꼭 안아 주세요', 50:'50일 연속! 놀라운 꾸준함이에요', 100:'100일 연속! 전설이 되었어요' };
+function streakText(si){
+  if (si.live) return si.count === 1 ? '🔥 오늘 1일째 도전 중' : `🔥 연속 ${si.count}일째 비움 중`;
+  if (si.n > 0) return `🔥 연속 ${si.n}일 달성`;
+  return '';
+}
+function renderStreak(){
+  const si = streakInfo(), el = $('#streak'), txt = streakText(si);
+  el.innerHTML = txt
+    ? `<button class="streak-pill${MILESTONES[si.count] ? ' mile' : ''}">${esc(txt)}${MILESTONES[si.count] && !si.live ? ' ✦' : ''}</button>`
+    : `<button class="streak-pill soft">✦ 오늘부터 1일, 시작해 볼까요?</button>`;
+  el.firstChild.onclick = () => go('log');
 }
 function renderLog(){
   const now = new Date();
@@ -1188,7 +1220,11 @@ function endSheet(){
       const f = { id: 'f' + endAt.toString(36) + Math.random().toString(36).slice(2, 6), start: S.cur.start, end: endAt, goal: S.cur.goal, mood, note: $('#enNote').value.trim().slice(0, 300) };
       S.fasts.push(f); S.fasts.sort((a, b) => a.start - b.start);
       S.lastEnd = endAt; S.cur = null; save(); closeSheet(); renderAll();
-      toast(achieved(f) ? '오늘의 비움을 기록했어요 ✦' : '기록했어요. 다음엔 조금 더 멀리 가봐요');
+      if (achieved(f)) {
+        const n = streakInfo().n;
+        toast(MILESTONES[n] ? `🎉 ${MILESTONES[n]}` : n > 1 ? `🔥 연속 ${n}일 달성! 오늘도 해냈어요` : '오늘의 비움을 기록했어요 ✦');
+        if (MILESTONES[n]) chime('goal', true);
+      } else toast('기록했어요. 다음엔 조금 더 멀리 가봐요');
     };
   });
 }
