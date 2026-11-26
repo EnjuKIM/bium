@@ -121,9 +121,10 @@ input,textarea{ font:inherit; color:var(--ink); }
 @keyframes twinkle{ 50%{ transform:scale(.55); opacity:.5; } }
 .mascot .zz{ animation:zz 3s ease-in-out infinite; }
 @keyframes zz{ 0%{ opacity:0; transform:translate(0,4px); } 40%{ opacity:1; } 100%{ opacity:0; transform:translate(6px,-8px); } }
-.rc-time{ font-family:var(--serif); font-size:clamp(28px, 10.5vw, 40px); line-height:1.1; margin-top:2px; letter-spacing:.01em; white-space:nowrap; }
-.rc-time .dg{ display:inline-block; width:.58em; text-align:center; }
-.rc-time .cl{ display:inline-block; width:.3em; text-align:center; opacity:.6; }
+.rc-time{ display:inline-block; font-family:var(--serif); font-size:clamp(28px, 10.5vw, 40px); line-height:1.1; margin-top:2px; white-space:nowrap; transform-origin:center; }
+/* 숫자 칸 너비를 고정해서 초가 바뀌어도 흔들리지 않게 (주아체 숫자 최대 0.63em) */
+.rc-time .dg{ display:inline-block; width:.66em; text-align:center; }
+.rc-time .cl{ display:inline-block; width:.34em; text-align:center; opacity:.6; }
 .rc-sub{ font-size:12.5px; color:var(--ink2); line-height:1.4; }
 .rc-sub b{ color:var(--ink); }
 
@@ -678,6 +679,21 @@ const R = 118, C = 2 * Math.PI * R;
 let sig = '';
 function polar(frac, r){ const a = frac * 2 * Math.PI - Math.PI/2; return [150 + r * Math.cos(a), 150 + r * Math.sin(a)]; }
 const digits = t => esc(t).replace(/\d/g, d => `<span class="dg">${d}</span>`).replace(/:/g, '<span class="cl">:</span>');
+// 큰 글씨 설정에서도 시간이 링 밖으로 넘치지 않게, 넘치면 살짝 줄여요
+let timeLen = -1;
+function setTime(t){
+  const el = $('#rcTime');
+  el.innerHTML = digits(t);
+  if (t.length !== timeLen) { timeLen = t.length; fitTime(); }
+}
+function fitTime(){
+  const el = $('#rcTime'); if (!el || !el.offsetParent) return;
+  el.style.transform = '';
+  const box = el.parentElement.clientWidth * 0.94, w = el.offsetWidth;
+  if (w > box && box > 0) el.style.transform = `scale(${(box / w).toFixed(3)})`;
+}
+window.addEventListener('resize', () => { timeLen = -1; fitTime(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { timeLen = -1; fitTime(); });
 
 function renderToday(){
   const now = Date.now(), ph = phase(now), pl = plan();
@@ -795,17 +811,17 @@ function tickToday(now, ph){
   let frac = 0;
   if (ph.p === 'fast') {
     frac = Math.min(1, ph.el / ph.goalMs);
-    $('#rcTime').innerHTML = digits(hms(ph.el));
+    setTime(hms(ph.el));
     $('#rcSub').innerHTML = ph.ach
       ? `<b>목표 달성 ✦</b> +${esc(dur(ph.el - ph.goalMs))}`
       : `목표까지 <b>${esc(dur(ph.goalMs - ph.el))}</b>`;
   } else if (ph.p === 'eat') {
     frac = Math.min(1, ph.el / ph.win);
-    $('#rcTime').innerHTML = digits(hms(ph.win - ph.el));
+    setTime(hms(ph.win - ph.el));
     $('#rcSub').innerHTML = `다음 단식까지`;
   } else {
     const pl = plan();
-    $('#rcTime').innerHTML = digits(`${pl.f}:00:00`);
+    setTime(`${pl.f}:00:00`);
     $('#rcSub').innerHTML = `<b>${esc(planName(pl))}</b> 비움 준비 완료`;
   }
   $('#prog').setAttribute('stroke-dashoffset', (C * (1 - frac)).toFixed(2));
@@ -1504,7 +1520,7 @@ function go(v){
   if (v === 'food') renderFood();
   if (v === 'stages') renderStages();
   if (v === 'log') renderLog();
-  if (v === 'today') renderToday();
+  if (v === 'today') { timeLen = -1; renderToday(); }
   window.scrollTo({ top:0 });
 }
 function bindGo(root){ root.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go)); }
