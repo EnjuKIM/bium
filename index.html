@@ -71,7 +71,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 @keyframes drift{ from{ transform:translateX(-30vw); } to{ transform:translateX(130vw); } }
 
 /* ── 뼈대 ───────────────────────── */
-.app{ max-width:460px; margin:0 auto; padding:calc(var(--sat) + 14px) 16px calc(var(--navh) + var(--sab) + 28px); }
+.app{ max-width:460px; margin:0 auto; padding:calc(var(--sat) + 14px) 16px calc(var(--sab) + 28px); }
 .top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
 .brand{ font-family:var(--serif); font-weight:700; font-size:24px; }
 .brand small{ font-family:var(--sans); font-weight:400; font-size:11px; letter-spacing:.02em; color:var(--ink3); margin-left:6px; }
@@ -127,7 +127,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 .rc-sub b{ color:var(--ink); }
 
 #mainBtn{ margin-top:14px; }
-.stage-pill{ display:flex; align-items:center; gap:8px; margin:calc(var(--navh) + var(--sab) + 40px) auto 0; max-width:100%; padding:10px 14px 10px 12px; border-radius:999px; background:var(--glass2);
+.stage-pill{ display:flex; align-items:center; gap:8px; margin:16px auto 0; max-width:100%; padding:10px 14px 10px 12px; border-radius:999px; background:var(--glass2);
   border:1px solid var(--line); font-size:14px; color:var(--ink); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
 .stage-pill .sp-dot{ width:22px; height:22px; flex:0 0 22px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--acc),var(--acc2)); color:#fff; font-size:12px; }
 .stage-pill b{ font-family:var(--serif); font-weight:700; font-size:15px; }
@@ -276,11 +276,13 @@ input,textarea{ font:inherit; color:var(--ink); }
 .w-chip{ display:flex; align-items:center; gap:6px; padding:5px 6px 5px 10px; border-radius:999px; background:var(--soft); font-size:12px; color:var(--ink2); }
 .w-chip button{ width:20px; height:20px; border-radius:50%; display:grid; place-items:center; color:var(--ink3); }
 
-/* ── 아래 메뉴 ───────────────────── */
-.nav{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(var(--sab) + 12px); width:min(calc(100% - 32px), 420px); height:var(--navh);
-  display:flex; padding:6px; gap:4px; border-radius:24px; background:var(--navbg); border:1px solid var(--line); -webkit-backdrop-filter:blur(20px) saturate(1.2); backdrop-filter:blur(20px) saturate(1.2); z-index:20; }
-.nav button{ flex:1 1 0; min-width:0; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:11px; color:var(--ink3); transition:background .25s, color .25s; }
-.nav button svg{ width:21px; height:21px; }
+/* ── 위 메뉴 (스크롤해도 위에 붙어 있어요) ── */
+.nav{ position:sticky; top:calc(var(--sat) + 6px); margin:10px 0 4px; width:100%; height:54px;
+  display:flex; padding:4px; gap:2px; border-radius:20px; background:var(--navbg); border:1px solid var(--line); box-shadow:0 8px 22px -16px rgba(30,20,70,.45);
+  -webkit-backdrop-filter:blur(20px) saturate(1.2); backdrop-filter:blur(20px) saturate(1.2); z-index:20; }
+.nav button{ flex:1 1 0; min-width:0; border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:11px; white-space:nowrap; color:var(--ink3); transition:background .25s, color .25s; }
+.nav button span{ overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.nav button svg{ width:19px; height:19px; flex:0 0 19px; }
 .nav button.on{ color:var(--ink); background:var(--soft2); }
 .nav button.on svg{ color:var(--acc); filter:drop-shadow(0 0 6px var(--acc)); }
 
@@ -329,7 +331,7 @@ input,textarea{ font:inherit; color:var(--ink); }
 .sw::after{ content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:transform .25s; }
 .sw.on{ background:linear-gradient(135deg,var(--acc),var(--acc2)); }
 .sw.on::after{ transform:translateX(18px); }
-.toast{ position:fixed; left:50%; bottom:calc(var(--sab) + var(--navh) + 26px); transform:translate(-50%, 12px); max-width:calc(100% - 40px); padding:11px 18px; border-radius:999px;
+.toast{ position:fixed; left:50%; bottom:calc(var(--sab) + 24px); transform:translate(-50%, 12px); max-width:calc(100% - 40px); padding:11px 18px; border-radius:999px;
   background:rgba(255,255,255,.94); color:#1b1434; font-size:13.5px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .3s, transform .3s; z-index:60; text-align:center; word-break:keep-all; }
 .toast.show{ opacity:1; transform:translate(-50%, 0); }
 
@@ -365,10 +367,30 @@ input,textarea{ font:inherit; color:var(--ink); }
       <div class="brand">비움</div>
       <div class="date" id="todayLabel"></div>
     </div>
-    <button class="icon-btn" id="btnSettings" aria-label="설정">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-    </button>
   </header>
+
+  <nav class="nav" id="nav">
+  <button data-view="today" class="on">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+    <span>오늘</span>
+  </button>
+  <button data-view="food">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0z"/><path d="M8 20h8"/><path d="M9 8c0-1.5 1-1.5 1-3M13 8c0-1.5 1-1.5 1-3"/></svg>
+    <span>음식</span>
+  </button>
+  <button data-view="stages">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+    <span>몸의 변화</span>
+  </button>
+  <button data-view="log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>
+    <span>기록</span>
+  </button>
+  <button id="btnSettings" aria-label="설정">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    <span>설정</span>
+  </button>
+  </nav>
 
   <main>
     <!-- 오늘 -->
@@ -414,24 +436,6 @@ input,textarea{ font:inherit; color:var(--ink); }
   </main>
 </div>
 
-<nav class="nav" id="nav">
-  <button data-view="today" class="on">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
-    <span>오늘</span>
-  </button>
-  <button data-view="food">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0z"/><path d="M8 20h8"/><path d="M9 8c0-1.5 1-1.5 1-3M13 8c0-1.5 1-1.5 1-3"/></svg>
-    <span>음식</span>
-  </button>
-  <button data-view="stages">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
-    <span>몸의 변화</span>
-  </button>
-  <button data-view="log">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>
-    <span>기록</span>
-  </button>
-</nav>
 
 <div class="sheet-wrap" id="sheetWrap"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast"></div>
@@ -443,7 +447,7 @@ input,textarea{ font:inherit; color:var(--ink); }
    기록은 이 기기의 브라우저(localStorage)에만 저장돼요.
    ───────────────────────────────────────────── */
 const KEY = 'bium_v1';
-const BUILD = '2026-11-26.11'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
+const BUILD = '2026-11-26.12'; // 새 판을 올릴 때마다 바꿔요 → 열려 있던 앱이 알아서 새 판으로 바뀌어요
 const H = 36e5, MIN = 6e4, DAY = 864e5;
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -692,21 +696,9 @@ function fitTime(){
   const box = el.parentElement.clientWidth * 0.94, w = el.offsetWidth;
   if (w > box && box > 0) el.style.transform = `scale(${(box / w).toFixed(3)})`;
 }
-/* 첫 화면이 아래 메뉴와 겹치지 않게: 계획 상자가 메뉴 위에서 끝나도록 필요하면 링을 줄여요 */
+/* 메뉴가 위로 올라가서 아래와 겹칠 일이 없어요 → 시간 글자만 링에 맞춰요 */
 function fitHome(){
   if (view !== 'today') return;
-  const rb = $('#ringBox'), times = $('#times'), nav = $('#nav');
-  if (!rb || !times || !times.offsetParent) return;
-  const bub = $('#bubble');
-  rb.style.width = ''; bub.style.display = '';
-  const overBy = () => times.getBoundingClientRect().bottom + window.scrollY - (nav.getBoundingClientRect().top - 12); // 맨 위로 올렸을 때 기준
-  const shrink = min => {
-    const over = overBy();
-    if (over > 0) rb.style.width = Math.max(min, Math.floor(rb.getBoundingClientRect().width - over)) + 'px';
-  };
-  shrink(190);                                            // 1) 링을 조금 줄이고
-  if (overBy() > 0) { bub.style.display = 'none'; shrink(190); } // 2) 그래도 넘치면 말풍선을 숨기고
-  if (overBy() > 0) shrink(150);                          // 3) 마지막으로 링을 더 줄여요
   timeLen = -1; fitTime();
 }
 window.addEventListener('resize', () => { timeLen = -1; fitHome(); });
