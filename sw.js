@@ -20,6 +20,7 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  if (url.pathname.endsWith('.apk')) return; // 앱 설치 파일은 저장하지 않고 그대로 내려받기
 
   // 앱 화면: 인터넷이 되면 항상 최신판, 안 되면 저장해 둔 판
   if (req.mode === 'navigate') {

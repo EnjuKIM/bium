@@ -997,6 +997,7 @@ function settingsSheet(){
       ? '목표 시각과 새 단계에 들어설 때 폰 알림으로 알려 드려요. 앱을 닫아 두어도 울려요. 소리는 폰 설정 → 알림 → 비움에서 바꿀 수 있어요.'
       : `새 단계에 들어설 때와 목표에 닿았을 때 알려 드려요. 앱을 완전히 닫으면 알림이 늦거나 오지 않을 수 있어요.${perm === 'denied' ? '<br><span class="danger">브라우저에서 알림이 차단되어 있어요.</span>' : perm === 'unsupported' ? '<br>이 브라우저는 알림을 지원하지 않아요.' : ''}`}</div></div><button class="sw${S.notify ? ' on' : ''}" id="stNotify" aria-label="알림 켜기"></button></div>
     <div class="set-row"><div><div class="k">차임 소리</div><div class="d">앱을 열어 둔 채 목표에 닿거나 새 단계에 들어서면 은은한 종소리가 울려요. 무음 모드에서는 울리지 않을 수 있어요.</div></div><button class="sw${S.chime ? ' on' : ''}" id="stChime" aria-label="차임 소리 켜기"></button></div>
+    ${APP ? '' : `<a class="set-row" href="bium.apk" download="bium.apk" style="text-decoration:none;color:inherit"><div><div class="k">안드로이드 앱 받기</div><div class="d">홈 화면 위젯과, 앱을 닫아도 울리는 알람이 있는 갤럭시용 앱이에요. 내려받은 뒤 눌러서 설치해 주세요.</div></div><div class="v">↓</div></a>`}
     <button class="set-row" id="stCopy"><div><div class="k">백업 복사하기</div><div class="d">기록 전체를 글자로 복사해요. 메모장이나 카톡 나에게 보내기에 붙여 두세요.</div></div><div class="v">›</div></button>
     <button class="set-row" id="stFile"><div><div class="k">백업 파일로 저장</div><div class="d">bium-backup.json 파일을 ${APP ? '폰의 다운로드 폴더에 저장해요' : '내려받아요'}.</div></div><div class="v">›</div></button>
     <button class="set-row" id="stRestore"><div><div class="k">백업 붙여넣어 복원</div><div class="d">지금 기록에 합쳐져요. 지워지는 기록은 없어요.</div></div><div class="v">›</div></button>
